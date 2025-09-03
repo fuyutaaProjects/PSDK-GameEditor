@@ -1,0 +1,1 @@
+tilesets are extracted from the RPG Maker XP project, and placed here. the numbers in the name of the files correspond to the ID of the corresponding map.
