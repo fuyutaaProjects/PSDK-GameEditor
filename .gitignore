@@ -25,3 +25,4 @@ gradle-app.setting
 
 # Ignore generated tilesets
 resources/graphics/tilesets/*
+!resources/graphics/tilesets/
