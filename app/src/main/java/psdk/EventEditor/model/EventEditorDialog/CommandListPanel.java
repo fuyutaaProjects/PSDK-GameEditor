@@ -515,6 +515,8 @@ public class CommandListPanel extends JPanel {
             int selectedIndex = commandList.getSelectedIndex();
             if (selectedIndex != -1) {
                 commandListModel.set(selectedIndex, commandToEdit);
+
+                
                 updateCommandInEventPage(selectedIndex, commandToEdit);
                 System.out.println("DEBUG: Command updated in EventPage model at index " + selectedIndex + " after specific editor.");
             }
