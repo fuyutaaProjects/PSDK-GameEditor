@@ -13,6 +13,7 @@ import psdk.EventEditor.model.EventCommand;
 import psdk.EventEditor.model.EventPage;
 import psdk.EventEditor.model.EventEditorDialog.CommandListPanel;
 import psdk.EventEditor.model.EventEditorDialog.CommandEditingDialogs.CommentEditorDialog;
+import psdk.EventEditor.model.EventEditorDialog.CommandEditingDialogs.ScriptEditorDialog;
 import psdk.EventEditor.model.EventEditorDialog.CommandEditingDialogs.SetMoveRouteEditorDialog;
 import psdk.EventEditor.model.EventEditorDialog.CommandEditingDialogs.ShowTextEditorDialog;
 
@@ -23,8 +24,10 @@ public class CommandEditorManager {
     
     private static final int COMMAND_SHOW_TEXT = 101;
     private static final int COMMAND_COMMENT = 108;
-    private static final int COMMAND_COMMENT_CONTINUED = 408;
     private static final int COMMAND_SET_MOVE_ROUTE = 209;
+    private static final int COMMAND_SCRIPT = 355;
+    private static final int COMMAND_COMMENT_CONTINUED = 408;
+    private static final int COMMAND_SCRIPT_CONTINUED = 655;
     
     private final CommandListPanel panel;
 
@@ -59,6 +62,9 @@ public class CommandEditorManager {
                 break;
             case COMMAND_COMMENT:
                 modified = handleCommentEditor(commandToEdit);
+                break;
+            case COMMAND_SCRIPT:
+                modified = handleScriptEditor(commandToEdit);
                 break;
             default:
                 showNoEditorMessage(commandToEdit.getCode());
@@ -192,6 +198,58 @@ public class CommandEditorManager {
             JList<EventCommand> commandList = panel.getCommandList();
             if (commentIndex < panel.getCommandListModel().getSize()) {
                 commandList.setSelectedIndex(commentIndex);
+            }
+            
+            return true;
+        }
+        return false;
+    }
+
+    private boolean handleScriptEditor(EventCommand scriptCommand) {
+        EventPage currentPage = getCurrentPage();
+        if (currentPage == null) return false;
+        
+        List<EventCommand> commands = currentPage.getCommands();
+        int scriptIndex = findCommandIndex(commands, scriptCommand);
+        if (scriptIndex == -1) {
+            System.err.println("Could not find Script command in command list");
+            return false;
+        }
+        
+        // Collect the script command (355) and all following continuation commands (655)
+        List<EventCommand> scriptCommands = new ArrayList<>();
+        scriptCommands.add(commands.get(scriptIndex));
+        
+        // Add all following 655 commands
+        int nextIndex = scriptIndex + 1;
+        while (nextIndex < commands.size() && commands.get(nextIndex).getCode() == COMMAND_SCRIPT_CONTINUED) {
+            scriptCommands.add(commands.get(nextIndex));
+            nextIndex++;
+        }
+        
+        // Open the script editor
+        ScriptEditorDialog dialog = new ScriptEditorDialog(panel.getParentDialog(), scriptCommands);
+        dialog.setVisible(true);
+        
+        if (dialog.isCommandModified()) {
+            List<EventCommand> modifiedScripts = dialog.getModifiedScriptCommands();
+            
+            // Remove the old script commands from the list
+            for (int i = 0; i < scriptCommands.size(); i++) {
+                commands.remove(scriptIndex);
+                panel.getCommandListModel().remove(scriptIndex);
+            }
+            
+            // Insert the new script commands
+            for (int i = 0; i < modifiedScripts.size(); i++) {
+                commands.add(scriptIndex + i, modifiedScripts.get(i));
+                panel.getCommandListModel().add(scriptIndex + i, modifiedScripts.get(i));
+            }
+            
+            // Update the selection to the first script command
+            JList<EventCommand> commandList = panel.getCommandList();
+            if (scriptIndex < panel.getCommandListModel().getSize()) {
+                commandList.setSelectedIndex(scriptIndex);
             }
             
             return true;
