@@ -12,8 +12,10 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.AbstractAction;
@@ -59,6 +61,9 @@ public class SetMoveRouteEditorDialog extends JDialog {
     private JList<EventCommand> moveCommandList;
     private DefaultListModel<EventCommand> moveCommandListModel;
     private EventCommandListCellRenderer moveCommandCellRenderer;
+
+    private List<EventCommand> fullCommandList;
+    private int setMoveRouteIndex;
 
     private boolean commandModified = false;
 
@@ -127,12 +132,17 @@ public class SetMoveRouteEditorDialog extends JDialog {
         MOVE_COMMAND_EDITABILITY.put(45, true);  // Script...
     }
 
-    public SetMoveRouteEditorDialog(Dialog owner, EventCommand setMoveRouteCommand) {
+    public SetMoveRouteEditorDialog(Dialog owner, List<EventCommand> commandList, int commandIndex) {
         super(owner, "Set Move Route", true);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setSize(800, 680);
         setLocationRelativeTo(owner);
 
+        this.fullCommandList = commandList;
+        this.setMoveRouteIndex = commandIndex;
+        
+        EventCommand setMoveRouteCommand = commandList.get(commandIndex);
+        
         try {
             this.modified209Parameters = new JSONArray(setMoveRouteCommand.getParameters().toString());
             this.originalMoveRouteParams = this.modified209Parameters.optJSONObject(1);
@@ -169,6 +179,10 @@ public class SetMoveRouteEditorDialog extends JDialog {
         initComponents();
         loadMoveRouteData();
         setupKeyBindings();
+    }
+
+    public SetMoveRouteEditorDialog(Dialog owner, EventCommand setMoveRouteCommand) {
+        this(owner, Arrays.asList(setMoveRouteCommand), 0);
     }
 
     private void initializeEventTargetMap() {
@@ -864,15 +878,50 @@ public class SetMoveRouteEditorDialog extends JDialog {
 
             routeData.put("list", finalMoveRouteList);
             modified209Parameters.put(1, routeData);
+            modified209Parameters.put(2, !skipIfCannotMoveCheckBox.isSelected());
 
-            modified209Parameters.put(2, !skipIfCannotMoveCheckBox.isSelected()); 
+            // Mettre à jour la commande 209 dans la liste
+            EventCommand setMoveCommand = fullCommandList.get(setMoveRouteIndex);
+            setMoveCommand.setParameters(modified209Parameters);
+            
+            // Synchroniser les commandes 509
+            updateCommand509List();
 
-            System.out.println("DEBUG: SetMoveRouteEditorDialog: Changes saved to modified209Parameters.");
+            System.out.println("DEBUG: SetMoveRouteEditorDialog: Changes saved and 509 commands synchronized.");
             System.out.println("DEBUG: Final 209 Parameters: " + modified209Parameters.toString(2));
 
         } catch (JSONException e) {
             JOptionPane.showMessageDialog(this, "Error saving move route data: " + e.getMessage(), "Save Error", JOptionPane.ERROR_MESSAGE);
             System.err.println("Error saving move route data: " + e.getMessage());
+        }
+    }
+
+     private void updateCommand509List() {
+        try {
+            // Supprimer les anciennes commandes 509
+            int currentIndex = setMoveRouteIndex + 1;
+            while (currentIndex < fullCommandList.size() && 
+                   fullCommandList.get(currentIndex).getCode() == 509) {
+                fullCommandList.remove(currentIndex);
+            }
+            
+            // Ajouter les nouvelles commandes 509
+            int insertIndex = setMoveRouteIndex + 1;
+            for (int i = 0; i < modifiedMoveRouteList.length(); i++) {
+                JSONObject moveCmd = modifiedMoveRouteList.getJSONObject(i);
+                EventCommand cmd509 = new EventCommand(509, "0", new JSONArray().put(moveCmd));
+                fullCommandList.add(insertIndex, cmd509);
+                insertIndex++;
+            }
+            
+            System.out.println("DEBUG: Updated " + modifiedMoveRouteList.length() + " command 509 entries");
+            
+        } catch (JSONException e) {
+            System.err.println("Error updating 509 commands: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, 
+                "Error synchronizing move commands: " + e.getMessage(), 
+                "Synchronization Error", 
+                JOptionPane.ERROR_MESSAGE);
         }
     }
 
