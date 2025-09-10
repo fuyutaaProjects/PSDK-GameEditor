@@ -20,9 +20,8 @@ gradle-app.setting
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
 
-
-
-
 # Ignore generated tilesets
 resources/graphics/tilesets/*
 !resources/graphics/tilesets/explanation.txt
+
+app/bin/
