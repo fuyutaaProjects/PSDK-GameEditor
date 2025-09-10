@@ -10,42 +10,39 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Editor dialog for comment commands (108 + 408 continuation commands).
- * Handles multi-line comments that span across multiple EventCommand objects.
- */
 public class CommentEditorDialog extends JDialog {
 
-    private static final int COMMENT_START = 108;
-    private static final int COMMENT_CONTINUATION = 408;
-
-    private List<EventCommand> allCommands;
-    private int startCommandIndex;
+    private List<EventCommand> commentCommands; // Liste des commandes de commentaire (108 + 408s)
     private JTextArea textArea;
     private boolean commandModified = false;
-    private String originalIndent;
 
     /**
      * Constructor for the comment editing dialog.
      * @param owner The parent window of this dialog.
-     * @param commands The complete list of commands from the event page.
-     * @param commentStartIndex The index of the 108 command in the command list.
+     * @param commentCommands List of comment commands (108 followed by 408s) to edit.
      */
-    public CommentEditorDialog(Dialog owner, List<EventCommand> commands, int commentStartIndex) {
+    public CommentEditorDialog(Dialog owner, List<EventCommand> commentCommands) {
         super(owner, "Edit Comment", true);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setMinimumSize(new Dimension(500, 300));
         setLocationRelativeTo(owner);
 
-        this.allCommands = commands;
-        this.startCommandIndex = commentStartIndex;
-        
-        if (commentStartIndex < 0 || commentStartIndex >= commands.size() || 
-            commands.get(commentStartIndex).getCode() != COMMENT_START) {
-            throw new IllegalArgumentException("Invalid comment start index or command is not a comment (108)");
+        // Creates a deep copy of the comment commands to work on
+        this.commentCommands = new ArrayList<>();
+        for (EventCommand cmd : commentCommands) {
+            try {
+                EventCommand copy = new EventCommand(
+                    cmd.getCode(),
+                    cmd.getIndent(),
+                    cmd.getParameters() != null ? new JSONArray(cmd.getParameters().toString()) : new JSONArray()
+                );
+                this.commentCommands.add(copy);
+            } catch (JSONException e) {
+                System.err.println("Error deep copying EventCommand for CommentEditorDialog: " + e.getMessage());
+                // Fallback: create empty command with same code and indent
+                this.commentCommands.add(new EventCommand(cmd.getCode(), cmd.getIndent(), new JSONArray()));
+            }
         }
-
-        this.originalIndent = commands.get(commentStartIndex).getIndent();
 
         initComponents();
         loadCommentData();
@@ -56,22 +53,14 @@ public class CommentEditorDialog extends JDialog {
         JPanel mainPanel = new JPanel(new BorderLayout(5, 5));
         mainPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        // Create text area with label
-        JLabel label = new JLabel("Comment text:");
-        mainPanel.add(label, BorderLayout.NORTH);
-
         textArea = new JTextArea();
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
-        textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-        
         JScrollPane scrollPane = new JScrollPane(textArea);
-        scrollPane.setPreferredSize(new Dimension(480, 200));
         mainPanel.add(scrollPane, BorderLayout.CENTER);
 
         add(mainPanel, BorderLayout.CENTER);
 
-        // Button panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         JButton okButton = new JButton("OK");
         JButton cancelButton = new JButton("Cancel");
@@ -93,107 +82,83 @@ public class CommentEditorDialog extends JDialog {
     }
 
     /**
-     * Loads the comment data from the 108 and subsequent 408 commands into the text area.
+     * Loads the comment commands' text data into the JTextArea.
+     * Combines text from the 108 command and all following 408 commands.
      */
     private void loadCommentData() {
         StringBuilder sb = new StringBuilder();
         
-        // Load the main comment (108)
-        EventCommand startCommand = allCommands.get(startCommandIndex);
-        try {
-            JSONArray parameters = startCommand.getParameters();
-            if (parameters != null && parameters.length() > 0) {
-                sb.append(parameters.getString(0));
-            }
-        } catch (JSONException e) {
-            System.err.println("Error reading comment start parameter: " + e.getMessage());
-        }
-
-        // Load continuation comments (408)
-        int currentIndex = startCommandIndex + 1;
-        while (currentIndex < allCommands.size() && 
-               allCommands.get(currentIndex).getCode() == COMMENT_CONTINUATION) {
+        for (int i = 0; i < commentCommands.size(); i++) {
+            EventCommand cmd = commentCommands.get(i);
+            JSONArray parameters = cmd.getParameters();
             
-            EventCommand contCommand = allCommands.get(currentIndex);
-            try {
-                JSONArray parameters = contCommand.getParameters();
-                if (parameters != null && parameters.length() > 0) {
-                    sb.append("\n");
-                    sb.append(parameters.getString(0));
+            if (parameters != null && parameters.length() > 0) {
+                try {
+                    String text = parameters.getString(0);
+                    sb.append(text);
+                    if (i < commentCommands.size() - 1) {
+                        sb.append("\n");
+                    }
+                } catch (JSONException e) {
+                    System.err.println("Error reading comment parameter from command " + cmd.getCode() + ": " + e.getMessage());
                 }
-            } catch (JSONException e) {
-                System.err.println("Error reading comment continuation parameter at index " + currentIndex + ": " + e.getMessage());
             }
-            currentIndex++;
         }
-
+        
         textArea.setText(sb.toString());
     }
 
     /**
-     * Saves the changes by removing old comment commands and creating new ones.
+     * Saves the JTextArea modifications back to the comment commands.
+     * Recreates the command structure: first line goes to 108, subsequent lines to 408 commands.
      */
     private void saveChanges() {
         String fullText = textArea.getText();
-        String[] lines = fullText.split("\n", -1); // -1 to keep empty strings
-
-        // Remove old comment commands (108 + all following 408s)
-        removeOldCommentCommands();
-
-        // Create new comment commands
-        createNewCommentCommands(lines);
-    }
-
-    /**
-     * Removes the original 108 command and all following 408 commands.
-     */
-    private void removeOldCommentCommands() {
-        // Remove from the start index, going backwards to maintain indices
-        List<Integer> indicesToRemove = new ArrayList<>();
+        String[] lines = fullText.split("\n", -1); // Keep empty lines
         
-        // Add the main comment index
-        indicesToRemove.add(startCommandIndex);
+        // Clear the current command list
+        commentCommands.clear();
         
-        // Add all continuation comment indices
-        int currentIndex = startCommandIndex + 1;
-        while (currentIndex < allCommands.size() && 
-               allCommands.get(currentIndex).getCode() == COMMENT_CONTINUATION) {
-            indicesToRemove.add(currentIndex);
-            currentIndex++;
+        if (lines.length > 0) {
+            // First line goes to command 108
+            String firstLine = lines[0];
+            JSONArray firstParameters = new JSONArray();
+            firstParameters.put(firstLine);
+            
+            // Use the indent from the original first command, or default to "0"
+            String indent = "0"; // Default indent for comments
+            EventCommand firstCommand = new EventCommand(108, indent, firstParameters);
+            commentCommands.add(firstCommand);
+            
+            // Subsequent lines go to command 408
+            for (int i = 1; i < lines.length; i++) {
+                String line = lines[i];
+                JSONArray parameters = new JSONArray();
+                parameters.put(line);
+                EventCommand continuationCommand = new EventCommand(408, indent, parameters);
+                commentCommands.add(continuationCommand);
+            }
+        } else {
+            // Empty comment: create a single 108 command with empty text
+            JSONArray emptyParameters = new JSONArray();
+            emptyParameters.put("");
+            EventCommand emptyCommand = new EventCommand(108, "0", emptyParameters);
+            commentCommands.add(emptyCommand);
         }
-
-        // Remove commands in reverse order to maintain correct indices
-        for (int i = indicesToRemove.size() - 1; i >= 0; i--) {
-            allCommands.remove(indicesToRemove.get(i).intValue());
-        }
-    }
-
-    /**
-     * Creates new comment commands based on the text lines.
-     */
-    private void createNewCommentCommands(String[] lines) {
-        if (lines.length == 0) {
-            // Create empty comment if no text
-            EventCommand emptyComment = new EventCommand(COMMENT_START, originalIndent, 
-                new JSONArray().put(""));
-            allCommands.add(startCommandIndex, emptyComment);
-            return;
-        }
-
-        // Create the main comment (108) with the first line
-        JSONArray firstLineParams = new JSONArray().put(lines[0]);
-        EventCommand mainComment = new EventCommand(COMMENT_START, originalIndent, firstLineParams);
-        allCommands.add(startCommandIndex, mainComment);
-
-        // Create continuation comments (408) for remaining lines
-        for (int i = 1; i < lines.length; i++) {
-            JSONArray contParams = new JSONArray().put(lines[i]);
-            EventCommand contComment = new EventCommand(COMMENT_CONTINUATION, originalIndent, contParams);
-            allCommands.add(startCommandIndex + i, contComment);
+        
+        System.out.println("DEBUG: CommentEditorDialog: Changes saved to comment commands.");
+        System.out.println("DEBUG: Number of commands created: " + commentCommands.size());
+        for (int i = 0; i < commentCommands.size(); i++) {
+            System.out.println("DEBUG: Command " + i + ": Code " + commentCommands.get(i).getCode() + 
+                             ", Parameters: " + commentCommands.get(i).getParameters().toString());
         }
     }
 
     public boolean isCommandModified() {
         return commandModified;
+    }
+
+    public List<EventCommand> getModifiedCommentCommands() {
+        return commentCommands;
     }
 }

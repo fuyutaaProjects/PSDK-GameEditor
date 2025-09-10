@@ -1,5 +1,6 @@
 package psdk.EventEditor.model.EventEditorDialog.CommandListPanelPackage;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JList;
@@ -11,6 +12,7 @@ import libs.json.JSONObject;
 import psdk.EventEditor.model.EventCommand;
 import psdk.EventEditor.model.EventPage;
 import psdk.EventEditor.model.EventEditorDialog.CommandListPanel;
+import psdk.EventEditor.model.EventEditorDialog.CommandEditingDialogs.CommentEditorDialog;
 import psdk.EventEditor.model.EventEditorDialog.CommandEditingDialogs.SetMoveRouteEditorDialog;
 import psdk.EventEditor.model.EventEditorDialog.CommandEditingDialogs.ShowTextEditorDialog;
 
@@ -20,6 +22,8 @@ import psdk.EventEditor.model.EventEditorDialog.CommandEditingDialogs.ShowTextEd
 public class CommandEditorManager {
     
     private static final int COMMAND_SHOW_TEXT = 101;
+    private static final int COMMAND_COMMENT = 108;
+    private static final int COMMAND_COMMENT_CONTINUED = 408;
     private static final int COMMAND_SET_MOVE_ROUTE = 209;
     
     private final CommandListPanel panel;
@@ -42,15 +46,19 @@ public class CommandEditorManager {
             return;
         }
 
-        EventCommand commandCopy = createCommandCopy(commandToEdit);
         boolean modified = false;
 
         switch (commandToEdit.getCode()) {
             case COMMAND_SET_MOVE_ROUTE:
+                EventCommand commandCopy = createCommandCopy(commandToEdit);
                 modified = handleSetMoveRouteEditor(commandToEdit, commandCopy);
                 break;
             case COMMAND_SHOW_TEXT:
-                modified = handleShowTextEditor(commandToEdit, commandCopy);
+                EventCommand showTextCopy = createCommandCopy(commandToEdit);
+                modified = handleShowTextEditor(commandToEdit, showTextCopy);
+                break;
+            case COMMAND_COMMENT:
+                modified = handleCommentEditor(commandToEdit);
                 break;
             default:
                 showNoEditorMessage(commandToEdit.getCode());
@@ -58,7 +66,6 @@ public class CommandEditorManager {
         }
 
         if (modified) {
-            updateCommandAfterEdit(commandToEdit);
             notifyModification();
         }
     }
@@ -134,6 +141,59 @@ public class CommandEditorManager {
             original.setCode(modified.getCode());
             original.setIndent(modified.getIndent());
             original.setParameters(modified.getParameters());
+            updateCommandAfterEdit(original);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean handleCommentEditor(EventCommand commentCommand) {
+        EventPage currentPage = getCurrentPage();
+        if (currentPage == null) return false;
+        
+        List<EventCommand> commands = currentPage.getCommands();
+        int commentIndex = findCommandIndex(commands, commentCommand);
+        if (commentIndex == -1) {
+            System.err.println("Could not find Comment command in command list");
+            return false;
+        }
+        
+        // Collect the comment command (108) and all following continuation commands (408)
+        List<EventCommand> commentCommands = new ArrayList<>();
+        commentCommands.add(commands.get(commentIndex));
+        
+        // Add all following 408 commands
+        int nextIndex = commentIndex + 1;
+        while (nextIndex < commands.size() && commands.get(nextIndex).getCode() == COMMAND_COMMENT_CONTINUED) {
+            commentCommands.add(commands.get(nextIndex));
+            nextIndex++;
+        }
+        
+        // Open the comment editor
+        CommentEditorDialog dialog = new CommentEditorDialog(panel.getParentDialog(), commentCommands);
+        dialog.setVisible(true);
+        
+        if (dialog.isCommandModified()) {
+            List<EventCommand> modifiedComments = dialog.getModifiedCommentCommands();
+            
+            // Remove the old comment commands from the list
+            for (int i = 0; i < commentCommands.size(); i++) {
+                commands.remove(commentIndex);
+                panel.getCommandListModel().remove(commentIndex);
+            }
+            
+            // Insert the new comment commands
+            for (int i = 0; i < modifiedComments.size(); i++) {
+                commands.add(commentIndex + i, modifiedComments.get(i));
+                panel.getCommandListModel().add(commentIndex + i, modifiedComments.get(i));
+            }
+            
+            // Update the selection to the first comment command
+            JList<EventCommand> commandList = panel.getCommandList();
+            if (commentIndex < panel.getCommandListModel().getSize()) {
+                commandList.setSelectedIndex(commentIndex);
+            }
+            
             return true;
         }
         return false;
