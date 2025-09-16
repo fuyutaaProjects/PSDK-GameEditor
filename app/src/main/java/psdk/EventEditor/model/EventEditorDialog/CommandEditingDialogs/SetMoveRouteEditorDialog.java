@@ -45,12 +45,14 @@ import psdk.EventEditor.model.EventCommand;
 import psdk.EventEditor.model.EventEditorDialog.CommandEditingDialogs.SetMoveRoutePackage.MoveCommandHandler;
 import psdk.EventEditor.model.EventEditorDialog.CommandEditingDialogs.SetMoveRoutePackage.MoveCommandRegistry;
 import psdk.EventEditor.model.EventEditorDialog.CommandEditingDialogs.SetMoveRoutePackage.MoveCommandUI;
+import psdk.EventEditor.utils.DialogKeyBindingUtils;
 import psdk.EventEditor.views.EventCommandListCellRenderer;
 import psdk.EventEditor.views.MoveCommandQuickInsertDialog;
 
 public class SetMoveRouteEditorDialog extends JDialog implements 
         MoveCommandUI.MoveCommandInsertCallback, 
-        MoveCommandUI.MoveCommandGraphicCallback {
+        MoveCommandUI.MoveCommandGraphicCallback,
+        DialogKeyBindingUtils.SaveableDialog {
 
     private JSONObject originalMoveRouteParams;
     private JSONArray modifiedMoveRouteList;
@@ -313,20 +315,20 @@ public class SetMoveRouteEditorDialog extends JDialog implements
     }
 
     private void setupKeyBindings() {
-        JRootPane rootPane = this.getRootPane();
-        InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-        ActionMap actionMap = rootPane.getActionMap();
+        DialogKeyBindingUtils.setupStandardKeyBindings(this, this);
+    }
 
-        KeyStroke shiftEnter = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, KeyEvent.SHIFT_DOWN_MASK);
-        inputMap.put(shiftEnter, "saveAndClose");
-        actionMap.put("saveAndClose", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                saveChanges();
-                commandModified = true;
-                dispose();
-            }
-        });
+    @Override
+    public void saveAndClose() {
+        saveChanges();
+        commandModified = true;
+        dispose();
+    }
+
+    @Override
+    public void cancelAndClose() {
+        commandModified = false;
+        dispose();
     }
 
     // MoveCommandInsertCallback implementation
