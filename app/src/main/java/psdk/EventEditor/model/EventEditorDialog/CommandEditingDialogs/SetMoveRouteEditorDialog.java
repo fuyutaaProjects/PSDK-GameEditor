@@ -14,7 +14,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +34,6 @@ import javax.swing.JPanel;
 import javax.swing.JRootPane;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
@@ -44,10 +42,15 @@ import libs.json.JSONArray;
 import libs.json.JSONException;
 import libs.json.JSONObject;
 import psdk.EventEditor.model.EventCommand;
+import psdk.EventEditor.model.EventEditorDialog.CommandEditingDialogs.SetMoveRoutePackage.MoveCommandHandler;
+import psdk.EventEditor.model.EventEditorDialog.CommandEditingDialogs.SetMoveRoutePackage.MoveCommandRegistry;
+import psdk.EventEditor.model.EventEditorDialog.CommandEditingDialogs.SetMoveRoutePackage.MoveCommandUI;
 import psdk.EventEditor.views.EventCommandListCellRenderer;
 import psdk.EventEditor.views.MoveCommandQuickInsertDialog;
 
-public class SetMoveRouteEditorDialog extends JDialog {
+public class SetMoveRouteEditorDialog extends JDialog implements 
+        MoveCommandUI.MoveCommandInsertCallback, 
+        MoveCommandUI.MoveCommandGraphicCallback {
 
     private JSONObject originalMoveRouteParams;
     private JSONArray modifiedMoveRouteList;
@@ -64,73 +67,11 @@ public class SetMoveRouteEditorDialog extends JDialog {
 
     private List<EventCommand> fullCommandList;
     private int setMoveRouteIndex;
-
     private boolean commandModified = false;
-
     private Map<Integer, String> eventTargetMap;
 
-    public static final Map<String, Integer> MOVE_COMMAND_CODES = new LinkedHashMap<>();
-    public static final Map<Integer, String> MOVE_COMMAND_NAMES_BY_CODE = new LinkedHashMap<>();
-    public static final Map<Integer, Boolean> MOVE_COMMAND_EDITABILITY = new LinkedHashMap<>();
-
-    static {
-        String[] col1Names = {
-            "Move Down", "Move Left", "Move Right", "Move Up",
-            "Move Lower Left", "Move Lower Right", "Move Upper Left", "Move Upper Right",
-            "Move at Random", "Move toward Player", "Move away from Player",
-            "1 Step Forward", "1 Step Backward", "Jump...", "Wait..."
-        };
-        int[] col1Codes = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
-
-        String[] col2Names = {
-            "Turn Down", "Turn Left", "Turn Right", "Turn Up",
-            "Turn 90° Right", "Turn 90° Left", "Turn 180°", "Turn 90° Right or Left",
-            "Turn at Random", "Turn toward Player", "Turn away from Player",
-            "Switch ON...", "Switch OFF...", "Change Speed...", "Change Freq..."
-        };
-        int[] col2Codes = {16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30};
-
-        String[] col3Names = {
-            "Move Animation ON", "Move Animation OFF", "Stop Animation ON", "Stop Animation OFF",
-            "Direction Fix ON", "Direction Fix OFF", "Through ON", "Through OFF",
-            "Always on Top ON", "Always on Top OFF", "Change Graphic...",
-            "Change Opacity...", "Change Blending...", "Play SE...", "Script..."
-        };
-        int[] col3Codes = {31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45};
-
-        int maxRows = Math.max(col1Names.length, Math.max(col2Names.length, col3Names.length));
-
-        for (int i = 0; i < maxRows; i++) {
-            if (i < col1Names.length) {
-                MOVE_COMMAND_CODES.put(col1Names[i], col1Codes[i]);
-                MOVE_COMMAND_NAMES_BY_CODE.put(col1Codes[i], col1Names[i]);
-            }
-            if (i < col2Names.length) {
-                MOVE_COMMAND_CODES.put(col2Names[i], col2Codes[i]);
-                MOVE_COMMAND_NAMES_BY_CODE.put(col2Codes[i], col2Names[i]);
-            }
-            if (i < col3Names.length) {
-                MOVE_COMMAND_CODES.put(col3Names[i], col3Codes[i]);
-                MOVE_COMMAND_NAMES_BY_CODE.put(col3Codes[i], col3Names[i]);
-            }
-        }
-        
-        for (Integer code : MOVE_COMMAND_NAMES_BY_CODE.keySet()) {
-            MOVE_COMMAND_EDITABILITY.put(code, false);
-        }
-
-        MOVE_COMMAND_EDITABILITY.put(14, true);  // Jump...
-        MOVE_COMMAND_EDITABILITY.put(15, true);  // Wait...
-        MOVE_COMMAND_EDITABILITY.put(27, true);  // Switch ON...
-        MOVE_COMMAND_EDITABILITY.put(28, true);  // Switch OFF...
-        MOVE_COMMAND_EDITABILITY.put(29, true);  // Change Speed...
-        MOVE_COMMAND_EDITABILITY.put(30, true);  // Change Freq...
-        MOVE_COMMAND_EDITABILITY.put(41, true);  // Change Graphic...
-        MOVE_COMMAND_EDITABILITY.put(42, true);  // Change Opacity...
-        MOVE_COMMAND_EDITABILITY.put(43, true);  // Change Blending...
-        MOVE_COMMAND_EDITABILITY.put(44, true);  // Play SE...
-        MOVE_COMMAND_EDITABILITY.put(45, true);  // Script...
-    }
+    private MoveCommandHandler commandHandler;
+    private MoveCommandUI commandUI;
 
     public SetMoveRouteEditorDialog(Dialog owner, List<EventCommand> commandList, int commandIndex) {
         super(owner, "Set Move Route", true);
@@ -140,9 +81,21 @@ public class SetMoveRouteEditorDialog extends JDialog {
 
         this.fullCommandList = commandList;
         this.setMoveRouteIndex = commandIndex;
+        this.commandHandler = new MoveCommandHandler(this);
+        this.commandUI = new MoveCommandUI(this, this);
         
-        EventCommand setMoveRouteCommand = commandList.get(commandIndex);
-        
+        initializeFromCommand(commandList.get(commandIndex));
+        initializeEventTargetMap();
+        initComponents();
+        loadMoveRouteData();
+        setupKeyBindings();
+    }
+
+    public SetMoveRouteEditorDialog(Dialog owner, EventCommand setMoveRouteCommand) {
+        this(owner, Arrays.asList(setMoveRouteCommand), 0);
+    }
+
+    private void initializeFromCommand(EventCommand setMoveRouteCommand) {
         try {
             this.modified209Parameters = new JSONArray(setMoveRouteCommand.getParameters().toString());
             this.originalMoveRouteParams = this.modified209Parameters.optJSONObject(1);
@@ -157,32 +110,29 @@ public class SetMoveRouteEditorDialog extends JDialog {
             }
         } catch (JSONException e) {
             System.err.println("Error deep copying move route parameters: " + e.getMessage());
-            this.modified209Parameters = setMoveRouteCommand.getParameters();
-            this.originalMoveRouteParams = this.modified209Parameters.optJSONObject(1);
-            this.modifiedMoveRouteList = (this.originalMoveRouteParams != null) ? this.originalMoveRouteParams.optJSONArray("list") : new JSONArray();
-            if (this.modifiedMoveRouteList == null) this.modifiedMoveRouteList = new JSONArray();
-            JSONArray temp = new JSONArray();
-            for(int i = 0; i < this.modifiedMoveRouteList.length(); i++) {
-                try {
-                    JSONObject currentCmd = this.modifiedMoveRouteList.getJSONObject(i);
-                    if (currentCmd.optInt("code", -1) != 0) {
-                        temp.put(currentCmd);
-                    }
-                } catch (JSONException ex) {
-                    System.err.println("Error filtering existing list during fallback: " + ex.getMessage());
-                }
-            }
-            this.modifiedMoveRouteList = temp;
+            handleFallbackInitialization(setMoveRouteCommand);
         }
-
-        initializeEventTargetMap();
-        initComponents();
-        loadMoveRouteData();
-        setupKeyBindings();
     }
 
-    public SetMoveRouteEditorDialog(Dialog owner, EventCommand setMoveRouteCommand) {
-        this(owner, Arrays.asList(setMoveRouteCommand), 0);
+    private void handleFallbackInitialization(EventCommand setMoveRouteCommand) {
+        this.modified209Parameters = setMoveRouteCommand.getParameters();
+        this.originalMoveRouteParams = this.modified209Parameters.optJSONObject(1);
+        this.modifiedMoveRouteList = (this.originalMoveRouteParams != null) ? 
+            this.originalMoveRouteParams.optJSONArray("list") : new JSONArray();
+        if (this.modifiedMoveRouteList == null) this.modifiedMoveRouteList = new JSONArray();
+        
+        JSONArray temp = new JSONArray();
+        for(int i = 0; i < this.modifiedMoveRouteList.length(); i++) {
+            try {
+                JSONObject currentCmd = this.modifiedMoveRouteList.getJSONObject(i);
+                if (currentCmd.optInt("code", -1) != 0) {
+                    temp.put(currentCmd);
+                }
+            } catch (JSONException ex) {
+                System.err.println("Error filtering existing list during fallback: " + ex.getMessage());
+            }
+        }
+        this.modifiedMoveRouteList = temp;
     }
 
     private void initializeEventTargetMap() {
@@ -196,6 +146,13 @@ public class SetMoveRouteEditorDialog extends JDialog {
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
+        mainPanel.add(createTopPanel(), BorderLayout.NORTH);
+        mainPanel.add(createCenterPanel(), BorderLayout.CENTER);
+        add(mainPanel, BorderLayout.CENTER);
+        add(createBottomPanel(), BorderLayout.SOUTH);
+    }
+
+    private JPanel createTopPanel() {
         JPanel topPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbcTop = new GridBagConstraints();
         gbcTop.insets = new Insets(5, 5, 5, 5);
@@ -205,6 +162,7 @@ public class SetMoveRouteEditorDialog extends JDialog {
         gbcTop.gridx = 0;
         gbcTop.gridy = 0;
         topPanel.add(new JLabel("Target:"), gbcTop);
+        
         gbcTop.gridx = 1;
         gbcTop.gridy = 0;
         targetComboBox = new JComboBox<>();
@@ -217,14 +175,26 @@ public class SetMoveRouteEditorDialog extends JDialog {
         }
         topPanel.add(targetComboBox, gbcTop);
 
-        mainPanel.add(topPanel, BorderLayout.NORTH);
+        return topPanel;
+    }
 
+    private JPanel createCenterPanel() {
         JPanel centerContainerPanel = new JPanel(new BorderLayout(10, 10));
 
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         splitPane.setResizeWeight(0.20);
         splitPane.setDividerLocation(0.20);
 
+        splitPane.setLeftComponent(createMoveCommandListPanel());
+        splitPane.setRightComponent(createAvailableCommandsPanel());
+
+        centerContainerPanel.add(splitPane, BorderLayout.CENTER);
+        centerContainerPanel.add(createOptionsPanel(), BorderLayout.SOUTH);
+
+        return centerContainerPanel;
+    }
+
+    private JPanel createMoveCommandListPanel() {
         JPanel moveCommandListPanel = new JPanel(new BorderLayout());
         moveCommandListPanel.setBorder(BorderFactory.createTitledBorder("Current Move Commands"));
 
@@ -234,6 +204,16 @@ public class SetMoveRouteEditorDialog extends JDialog {
         moveCommandList.setCellRenderer(moveCommandCellRenderer);
         moveCommandList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
+        setupMoveCommandListListeners();
+
+        JScrollPane scrollPaneList = new JScrollPane(moveCommandList);
+        moveCommandListPanel.add(scrollPaneList, BorderLayout.CENTER);
+        moveCommandListPanel.add(createMoveCommandButtonPanel(), BorderLayout.SOUTH);
+
+        return moveCommandListPanel;
+    }
+
+    private void setupMoveCommandListListeners() {
         moveCommandList.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -259,10 +239,9 @@ public class SetMoveRouteEditorDialog extends JDialog {
                 }
             }
         });
+    }
 
-        JScrollPane scrollPaneList = new JScrollPane(moveCommandList);
-        moveCommandListPanel.add(scrollPaneList, BorderLayout.CENTER);
-
+    private JPanel createMoveCommandButtonPanel() {
         JPanel moveCommandButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton editMoveButton = new JButton("Edit...");
         JButton moveMoveUpButton = new JButton("Move Up");
@@ -283,21 +262,21 @@ public class SetMoveRouteEditorDialog extends JDialog {
         moveCommandButtonPanel.add(editMoveButton);
         moveCommandButtonPanel.add(moveMoveUpButton);
         moveCommandButtonPanel.add(moveMoveDownButton);
-        moveCommandListPanel.add(moveCommandButtonPanel, BorderLayout.SOUTH);
+        return moveCommandButtonPanel;
+    }
 
-        splitPane.setLeftComponent(moveCommandListPanel);
-
+    private JPanel createAvailableCommandsPanel() {
         JPanel rightPanel = new JPanel(new BorderLayout());
         rightPanel.setBorder(BorderFactory.createTitledBorder("Available Move Commands"));
 
         JPanel buttonsGridPanel = new JPanel(new GridBagLayout());
-        createMoveCommandButtons(buttonsGridPanel);
+        commandUI.createMoveCommandButtons(buttonsGridPanel, commandHandler);
 
         rightPanel.add(buttonsGridPanel, BorderLayout.CENTER);
-        splitPane.setRightComponent(rightPanel);
+        return rightPanel;
+    }
 
-        centerContainerPanel.add(splitPane, BorderLayout.CENTER);
-
+    private JPanel createOptionsPanel() {
         JPanel optionsPanel = new JPanel(new GridLayout(1, 2, 10, 0));
         optionsPanel.setBorder(BorderFactory.createTitledBorder("Options"));
 
@@ -310,12 +289,10 @@ public class SetMoveRouteEditorDialog extends JDialog {
         waitForCompletionCheckBox = new JCheckBox("Wait for Completion (Hidden)");
         waitForCompletionCheckBox.setVisible(false);
 
-        centerContainerPanel.add(optionsPanel, BorderLayout.SOUTH);
+        return optionsPanel;
+    }
 
-        mainPanel.add(centerContainerPanel, BorderLayout.CENTER);
-
-        add(mainPanel, BorderLayout.CENTER);
-
+    private JPanel createBottomPanel() {
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton okButton = new JButton("OK");
         JButton cancelButton = new JButton("Cancel");
@@ -332,7 +309,7 @@ public class SetMoveRouteEditorDialog extends JDialog {
 
         bottomPanel.add(okButton);
         bottomPanel.add(cancelButton);
-        add(bottomPanel, BorderLayout.SOUTH);
+        return bottomPanel;
     }
 
     private void setupKeyBindings() {
@@ -340,7 +317,6 @@ public class SetMoveRouteEditorDialog extends JDialog {
         InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         ActionMap actionMap = rootPane.getActionMap();
 
-        // Shift + Enter saves and closes the window
         KeyStroke shiftEnter = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, KeyEvent.SHIFT_DOWN_MASK);
         inputMap.put(shiftEnter, "saveAndClose");
         actionMap.put("saveAndClose", new AbstractAction() {
@@ -353,8 +329,42 @@ public class SetMoveRouteEditorDialog extends JDialog {
         });
     }
 
+    // MoveCommandInsertCallback implementation
+    @Override
+    public void insertCommand(int moveCode, String commandName, JSONArray parameters) {
+        insertCommandInternal(moveCode, commandName, parameters);
+    }
+
+    // MoveCommandGraphicCallback implementation
+    @Override
+    public void openGraphicDialog(int moveCode, String commandName) {
+        String defaultGraphicName = "";
+        int defaultCol = 0;
+        int defaultRow = 0;
+        int defaultHue = 0;
+
+        ChangeGraphicDialog graphicDialog = new ChangeGraphicDialog(this, defaultGraphicName, 
+            (defaultCol * 2) + 2, defaultRow, defaultHue);
+        graphicDialog.setVisible(true);
+
+        if (graphicDialog.isOkPressed()) {
+            String newGraphicName = graphicDialog.getSelectedGraphicName();
+            int newEncodedX = graphicDialog.getSelectedColForRpgMaker();
+            int newRow = graphicDialog.getSelectedRow();
+            int newHue = graphicDialog.getHueValue();
+
+            JSONArray newParams = new JSONArray();
+            newParams.put(newGraphicName);
+            newParams.put(newHue);
+            newParams.put(newEncodedX);
+            newParams.put(newRow);
+
+            insertCommandInternal(moveCode, commandName, newParams);
+        }
+    }
+
     private void showQuickInsertDialog() {
-        MoveCommandQuickInsertDialog quickInsertDialog = new MoveCommandQuickInsertDialog(this, MOVE_COMMAND_CODES);
+        MoveCommandQuickInsertDialog quickInsertDialog = new MoveCommandQuickInsertDialog(this, MoveCommandRegistry.MOVE_COMMAND_CODES);
         quickInsertDialog.setVisible(true);
 
         Map.Entry<String, Integer> selectedCommandData = quickInsertDialog.getSelectedCommand();
@@ -363,208 +373,8 @@ public class SetMoveRouteEditorDialog extends JDialog {
             String commandName = selectedCommandData.getKey();
             
             JSONArray defaultParams = MoveCommandQuickInsertDialog.getDefaultParametersForCommand(moveCode);
-
             insertCommandInternal(moveCode, commandName, defaultParams);
         }
-    }
-
-
-    private void createMoveCommandButtons(JPanel panel) {
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(2, 2, 2, 2);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-
-        int col = 0;
-        int row = 0;
-        final int COLUMNS_PER_ROW = 3;
-
-        for (Map.Entry<String, Integer> entry : MOVE_COMMAND_CODES.entrySet()) {
-            String commandName = entry.getKey();
-            int currentMoveCode = entry.getValue();
-
-            JButton button = new JButton(commandName);
-            button.addActionListener(e -> {
-                if (currentMoveCode == 41) {
-                    String defaultGraphicName = "";
-                    int defaultCol = 0; // UI coordinate (0-3)
-                    int defaultRow = 0; // UI coordinate (0-3)  
-                    int defaultHue = 0;
-
-                    // encoding defaultCol (0) to RMXP : (0 * 2) + 2 = 2
-                    ChangeGraphicDialog graphicDialog = new ChangeGraphicDialog(this, defaultGraphicName, 
-                        (defaultCol * 2) + 2, defaultRow, defaultHue);
-                    graphicDialog.setVisible(true);
-
-                    if (graphicDialog.isOkPressed()) {
-                        String newGraphicName = graphicDialog.getSelectedGraphicName();
-                        int newEncodedX = graphicDialog.getSelectedColForRpgMaker();
-                        int newRow = graphicDialog.getSelectedRow();
-                        int newHue = graphicDialog.getHueValue();
-
-                        JSONArray newParams = new JSONArray();
-                        newParams.put(newGraphicName); // index 0
-                        newParams.put(newHue);         // index 1  
-                        newParams.put(newEncodedX);    // index 2
-                        newParams.put(newRow);         // index 3
-
-                        insertCommandInternal(currentMoveCode, commandName, newParams);
-                    }
-                } else {
-                    insertCommandFromButton(currentMoveCode, commandName);
-                }
-            });
-
-            gbc.gridx = col;
-            gbc.gridy = row;
-            panel.add(button, gbc);
-
-            col++;
-            if (col >= COLUMNS_PER_ROW) {
-                col = 0;
-                row++;
-            }
-        }
-    }
-
-    private void insertCommandFromButton(int moveCode, String commandName) {
-        JSONArray moveParams = new JSONArray(); 
-
-        switch (commandName) {
-            case "Jump...":
-                try {
-                    String input = JOptionPane.showInputDialog(this, "Enter X,Y offsets for Jump (e.g., 10,0):");
-                    if (input != null && !input.isEmpty()) {
-                        String[] parts = input.split(",");
-                        if (parts.length == 2) {
-                            moveParams.put(Integer.parseInt(parts[0].trim()));
-                            moveParams.put(Integer.parseInt(parts[1].trim()));
-                        }
-                    }
-                } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(this, "Invalid X,Y format. Using default [0,0].", "Error", JOptionPane.ERROR_MESSAGE);
-                    moveParams.put(0).put(0); 
-                }
-                break;
-            case "Wait...":
-                try {
-                    String input = JOptionPane.showInputDialog(this, "Enter wait frames (e.g., 4):");
-                    if (input != null && !input.isEmpty()) {
-                        moveParams.put(Integer.parseInt(input.trim()));
-                    }
-                } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(this, "Invalid frame number. Using default [0].", "Error", JOptionPane.ERROR_MESSAGE);
-                    moveParams.put(0); 
-                }
-                break;
-            case "Switch ON...":
-                try {
-                    String input = JOptionPane.showInputDialog(this, "Enter Switch ID to turn ON (e.g., 1):");
-                    if (input != null && !input.isEmpty()) {
-                        moveParams.put(Integer.parseInt(input.trim()));
-                    }
-                } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(this, "Invalid Switch ID. Using default [1].", "Error", JOptionPane.ERROR_MESSAGE);
-                    moveParams.put(1); 
-                }
-                break;
-            case "Switch OFF...":
-                try {
-                    String input = JOptionPane.showInputDialog(this, "Enter Switch ID to turn OFF (e.g., 1):");
-                    if (input != null && !input.isEmpty()) {
-                        moveParams.put(Integer.parseInt(input.trim()));
-                    }
-                } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(this, "Invalid Switch ID. Using default [1].", "Error", JOptionPane.ERROR_MESSAGE);
-                    moveParams.put(1); 
-                }
-                break;
-            case "Change Speed...":
-                try {
-                    String input = JOptionPane.showInputDialog(this, "Enter Speed (1-6):");
-                    if (input != null && !input.isEmpty()) {
-                        moveParams.put(Integer.parseInt(input.trim()));
-                    }
-                } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(this, "Invalid Speed. Using default [3].", "Error", JOptionPane.ERROR_MESSAGE);
-                    moveParams.put(3); 
-                }
-                break;
-            case "Change Freq...":
-                try {
-                    String input = JOptionPane.showInputDialog(this, "Enter Frequency (1-6):");
-                    if (input != null && !input.isEmpty()) {
-                        moveParams.put(Integer.parseInt(input.trim()));
-                    }
-                } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(this, "Invalid Frequency. Using default [3].", "Error", JOptionPane.ERROR_MESSAGE);
-                    moveParams.put(3); 
-                }
-                break;
-            case "Change Opacity...":
-                try {
-                    String input = JOptionPane.showInputDialog(this, "Enter Opacity (0-255):");
-                    if (input != null && !input.isEmpty()) {
-                        moveParams.put(Integer.parseInt(input.trim()));
-                    }
-                } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(this, "Invalid Opacity. Using default (255).", "Error", JOptionPane.ERROR_MESSAGE);
-                    moveParams.put(255);
-                }
-                break;
-            case "Change Blending...":
-                String[] blendingOptions = {"Normal", "Add", "Subtract"};
-                String selectedBlending = (String) JOptionPane.showInputDialog(
-                    this,
-                    "Select Blending Mode:",
-                    "Change Blending",
-                    JOptionPane.QUESTION_MESSAGE,
-                    null,
-                    blendingOptions,
-                    blendingOptions[0]
-                );
-                if (selectedBlending != null) {
-                    int blendingMode = 0;
-                    if (selectedBlending.equals("Add")) blendingMode = 1;
-                    else if (selectedBlending.equals("Subtract")) blendingMode = 2;
-                    moveParams.put(blendingMode);
-                } else {
-                    moveParams.put(0);
-                }
-                break;
-            case "Play SE...":
-                String seName = JOptionPane.showInputDialog(this, "Enter SE Name (e.g., 'Absorb'):");
-                if (seName == null) seName = "";
-                try {
-                    String volumeStr = JOptionPane.showInputDialog(this, "Enter Volume (0-100, default 100):");
-                    int volume = (volumeStr != null && !volumeStr.isEmpty()) ? Integer.parseInt(volumeStr) : 100;
-                    String pitchStr = JOptionPane.showInputDialog(this, "Enter Pitch (50-150, default 100):");
-                    int pitch = (pitchStr != null && !pitchStr.isEmpty()) ? Integer.parseInt(pitchStr) : 100;
-
-                    JSONObject seJson = new JSONObject();
-                    seJson.put("name", seName);
-                    seJson.put("volume", volume);
-                    seJson.put("pitch", pitch);
-                    moveParams.put(seJson);
-                } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(this, "Invalid number for Volume/Pitch. Using defaults.", "Error", JOptionPane.ERROR_MESSAGE);
-                    JSONObject seJson = new JSONObject();
-                    seJson.put("name", seName);
-                    seJson.put("volume", 100);
-                    seJson.put("pitch", 100);
-                    moveParams.put(seJson);
-                }
-                break;
-            case "Script...":
-                String script = JOptionPane.showInputDialog(this, "Enter Script Line:");
-                moveParams.put(script != null ? script : "");
-                break;
-            default:
-                break;
-        }
-
-        insertCommandInternal(moveCode, commandName, moveParams);
     }
 
     private void insertCommandInternal(int moveCode, String commandName, JSONArray parameters) {
@@ -588,7 +398,6 @@ public class SetMoveRouteEditorDialog extends JDialog {
             System.err.println("Error creating new move command JSON: " + e.getMessage());
         }
     }
-
 
     private void loadMoveRouteData() {
         try {
@@ -646,101 +455,18 @@ public class SetMoveRouteEditorDialog extends JDialog {
         try {
             JSONObject innerMoveCmdJson = commandToEdit.getParameters().getJSONObject(0);
             int commandCode = innerMoveCmdJson.getInt("code");
-            String commandName = MOVE_COMMAND_NAMES_BY_CODE.getOrDefault(commandCode, "Code " + commandCode);
+            String commandName = MoveCommandRegistry.getCommandName(commandCode);
 
             if (commandCode == 41) {
-                String graphicName = "";
-                int encodedX = 2; // Valeur par défaut RMXP pour x=0
-                int row = 0;
-                int hue = 0; 
-
-                JSONArray params = innerMoveCmdJson.optJSONArray("parameters");
-                if (params != null && params.length() >= 4) { 
-                    graphicName = params.optString(0, "");
-                    hue = params.optInt(1, 0);
-                    encodedX = params.optInt(2, 2);
-                    row = params.optInt(3, 0);
-                }
-
-                ChangeGraphicDialog graphicDialog = new ChangeGraphicDialog(this, graphicName, encodedX, row, hue);
-                graphicDialog.setVisible(true);
-
-                if (graphicDialog.isOkPressed()) {
-                    String newGraphicName = graphicDialog.getSelectedGraphicName();
-                    int newEncodedX = graphicDialog.getSelectedColForRpgMaker();
-                    int newRow = graphicDialog.getSelectedRow();
-                    int newHue = graphicDialog.getHueValue();
-                    
-                    JSONArray newParams = new JSONArray();
-                    newParams.put(newGraphicName); // index 0
-                    newParams.put(newHue);         // index 1
-                    newParams.put(newEncodedX);    // index 2  
-                    newParams.put(newRow);         // index 3
-
-                    if (!newParams.toString().equals(params.toString())) {
-                        innerMoveCmdJson.put("parameters", newParams);
-                        commandToEdit.setParameters(new JSONArray().put(innerMoveCmdJson));
-                        moveCommandListModel.set(indexInList, commandToEdit);
-                        modifiedMoveRouteList.put(indexInList, innerMoveCmdJson);
-                        commandModified = true;
-                        System.out.println("Graphic parameters updated for command at index " + indexInList + ": " + newParams.toString());
-                    } else {
-                        System.out.println("No changes detected for graphic parameters.");
-                    }
-                }
+                handleGraphicCommandEdit(commandToEdit, indexInList, innerMoveCmdJson);
                 return;
             }
 
-            if (MOVE_COMMAND_EDITABILITY.getOrDefault(commandCode, false)) {
-                JSONArray originalParams = innerMoveCmdJson.getJSONArray("parameters");
-                String initialParamText;
-                if (originalParams.length() == 0) {
-                    initialParamText = ""; 
-                } else {
-                    initialParamText = originalParams.toString();
-                    if (initialParamText.startsWith("[") && initialParamText.endsWith("]")) {
-                        initialParamText = initialParamText.substring(1, initialParamText.length() - 1);
-                    }
-                }
-
-                JTextArea parametersTextArea = new JTextArea(initialParamText, 5, 30);
-                parametersTextArea.setWrapStyleWord(true);
-                parametersTextArea.setLineWrap(true);
-                JScrollPane scrollPane = new JScrollPane(parametersTextArea);
-                scrollPane.setPreferredSize(new java.awt.Dimension(400, 200));
-
-                int result = JOptionPane.showConfirmDialog(this,
-                    scrollPane,
-                    "Edit Parameters for " + commandName + " (Code: " + commandCode + ")",
-                    JOptionPane.OK_CANCEL_OPTION,
-                    JOptionPane.PLAIN_MESSAGE);
-
-                if (result == JOptionPane.OK_OPTION) {
-                    String editedText = parametersTextArea.getText().trim();
-                    JSONArray newParams;
-                    try {
-                        if (editedText.isEmpty()) {
-                            newParams = new JSONArray();
-                        } else {
-                            if (!editedText.startsWith("[") || !editedText.endsWith("]")) {
-                                editedText = "[" + editedText + "]";
-                            }
-                            newParams = new JSONArray(editedText);
-                        }
-
-                        innerMoveCmdJson.put("parameters", newParams);
-                        commandToEdit.setParameters(new JSONArray().put(innerMoveCmdJson));
-                        moveCommandListModel.set(indexInList, commandToEdit);
-                        modifiedMoveRouteList.put(indexInList, innerMoveCmdJson);
-                        commandModified = true;
-                        System.out.println("Parameters updated for command at index " + indexInList + ": " + newParams.toString());
-                    } catch (JSONException ex) {
-                        JOptionPane.showMessageDialog(this, "Invalid JSON Array format for parameters. Please use: [] or [param1, param2, ...]", "Input Error", JOptionPane.ERROR_MESSAGE);
-                        System.err.println("Invalid JSON input for parameters: " + ex.getMessage());
-                    }
-                }
-            } else {
-                System.out.println("Command " + commandName + " (Code: " + commandCode + ") is not editable.");
+            if (commandHandler.editMoveCommandParameters(innerMoveCmdJson, commandCode, commandName, indexInList)) {
+                commandToEdit.setParameters(new JSONArray().put(innerMoveCmdJson));
+                moveCommandListModel.set(indexInList, commandToEdit);
+                modifiedMoveRouteList.put(indexInList, innerMoveCmdJson);
+                commandModified = true;
             }
 
         } catch (JSONException | NumberFormatException e) {
@@ -749,6 +475,47 @@ public class SetMoveRouteEditorDialog extends JDialog {
         }
     }
 
+    private void handleGraphicCommandEdit(EventCommand commandToEdit, int indexInList, JSONObject innerMoveCmdJson) throws JSONException {
+        String graphicName = "";
+        int encodedX = 2;
+        int row = 0;
+        int hue = 0; 
+
+        JSONArray params = innerMoveCmdJson.optJSONArray("parameters");
+        if (params != null && params.length() >= 4) { 
+            graphicName = params.optString(0, "");
+            hue = params.optInt(1, 0);
+            encodedX = params.optInt(2, 2);
+            row = params.optInt(3, 0);
+        }
+
+        ChangeGraphicDialog graphicDialog = new ChangeGraphicDialog(this, graphicName, encodedX, row, hue);
+        graphicDialog.setVisible(true);
+
+        if (graphicDialog.isOkPressed()) {
+            String newGraphicName = graphicDialog.getSelectedGraphicName();
+            int newEncodedX = graphicDialog.getSelectedColForRpgMaker();
+            int newRow = graphicDialog.getSelectedRow();
+            int newHue = graphicDialog.getHueValue();
+            
+            JSONArray newParams = new JSONArray();
+            newParams.put(newGraphicName);
+            newParams.put(newHue);
+            newParams.put(newEncodedX);
+            newParams.put(newRow);
+
+            if (!newParams.toString().equals(params.toString())) {
+                innerMoveCmdJson.put("parameters", newParams);
+                commandToEdit.setParameters(new JSONArray().put(innerMoveCmdJson));
+                moveCommandListModel.set(indexInList, commandToEdit);
+                modifiedMoveRouteList.put(indexInList, innerMoveCmdJson);
+                commandModified = true;
+                System.out.println("Graphic parameters updated for command at index " + indexInList + ": " + newParams.toString());
+            } else {
+                System.out.println("No changes detected for graphic parameters.");
+            }
+        }
+    }
 
     private void deleteInnerMoveCommand() {
         int selectedIndex = moveCommandList.getSelectedIndex();
@@ -841,7 +608,6 @@ public class SetMoveRouteEditorDialog extends JDialog {
         return newArray;
     }
 
-
     private void saveChanges() {
         try {
             int targetId = 0;
@@ -880,11 +646,9 @@ public class SetMoveRouteEditorDialog extends JDialog {
             modified209Parameters.put(1, routeData);
             modified209Parameters.put(2, !skipIfCannotMoveCheckBox.isSelected());
 
-            // Mettre à jour la commande 209 dans la liste
             EventCommand setMoveCommand = fullCommandList.get(setMoveRouteIndex);
             setMoveCommand.setParameters(modified209Parameters);
             
-            // Synchroniser les commandes 509
             updateCommand509List();
 
             System.out.println("DEBUG: SetMoveRouteEditorDialog: Changes saved and 509 commands synchronized.");
@@ -896,16 +660,16 @@ public class SetMoveRouteEditorDialog extends JDialog {
         }
     }
 
-     private void updateCommand509List() {
+    private void updateCommand509List() {
         try {
-            // Supprimer les anciennes commandes 509
+            // Remove old 509 commands
             int currentIndex = setMoveRouteIndex + 1;
             while (currentIndex < fullCommandList.size() && 
                    fullCommandList.get(currentIndex).getCode() == 509) {
                 fullCommandList.remove(currentIndex);
             }
             
-            // Ajouter les nouvelles commandes 509
+            // Add new 509 commands
             int insertIndex = setMoveRouteIndex + 1;
             for (int i = 0; i < modifiedMoveRouteList.length(); i++) {
                 JSONObject moveCmd = modifiedMoveRouteList.getJSONObject(i);
