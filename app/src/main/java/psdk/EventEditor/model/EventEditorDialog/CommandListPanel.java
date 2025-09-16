@@ -137,6 +137,7 @@ public class CommandListPanel extends JPanel {
         if (commands != null) {
             commands.forEach(commandListModel::addElement);
         }
+        System.out.println("[CommandListPanel] Command list updated. Total commands: " + commandListModel.size());
     }
 
     public void loadEventPages(Event event) {

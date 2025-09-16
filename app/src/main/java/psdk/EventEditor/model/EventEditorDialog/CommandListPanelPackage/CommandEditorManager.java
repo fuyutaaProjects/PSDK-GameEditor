@@ -36,11 +36,7 @@ public class CommandEditorManager {
     }
 
     public void openCommandEditor(EventCommand selectedCommand) {
-        if (selectedCommand.getCode() == COMMAND_SET_MOVE_ROUTE) {
-            openSetMoveRouteEditor(selectedCommand);
-        } else {
-            openSpecificCommandEditor(selectedCommand);
-        }
+        openSpecificCommandEditor(selectedCommand);
     }
 
     public void openSpecificCommandEditor(EventCommand commandToEdit) {
