@@ -38,8 +38,10 @@ import javax.swing.border.EmptyBorder;
 
 import psdk.EventEditor.ConfigManager;
 import psdk.EventEditor.Core;
+import psdk.EventEditor.utils.DialogKeyBindingUtils;
 
-public class ChangeGraphicDialog extends JDialog {
+
+public class ChangeGraphicDialog extends JDialog implements DialogKeyBindingUtils.ConfirmableDialog {
 
     private static final int GRID_COLS = 4;      // Columns in the spritesheet (0-3 for X)
     private static final int GRID_ROWS = 4;      // Rows in the spritesheet (0-3 for Y)
@@ -107,7 +109,22 @@ public class ChangeGraphicDialog extends JDialog {
         initComponents();
         loadGraphicFiles();
         selectInitialGraphic();
-        updatePreview(); 
+        updatePreview();
+        setupKeyBindings(); 
+    }
+
+    private void setupKeyBindings() {
+        DialogKeyBindingUtils.setupConfirmableKeyBindings(this, this);
+    }
+
+    @Override
+    public void acceptAndClose() {
+        onOk();
+    }
+
+    @Override
+    public void cancelAndClose() {
+        onCancel();
     }
 
     private void initComponents() {

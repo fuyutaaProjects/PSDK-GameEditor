@@ -3,13 +3,14 @@ package psdk.EventEditor.model.EventEditorDialog.CommandEditingDialogs;
 import libs.json.JSONArray;
 import libs.json.JSONException;
 import psdk.EventEditor.model.EventCommand;
+import psdk.EventEditor.utils.DialogKeyBindingUtils;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.stream.IntStream;
 
-public class ShowTextEditorDialog extends JDialog {
+public class ShowTextEditorDialog extends JDialog implements DialogKeyBindingUtils.SaveableDialog {
 
     private EventCommand modifiedCommand; // La commande Show Text que nous allons modifier
     private JTextArea textArea;
@@ -40,6 +41,24 @@ public class ShowTextEditorDialog extends JDialog {
 
         initComponents();
         loadTextData();
+        setupKeyBindings();
+    }
+
+    private void setupKeyBindings() {
+        DialogKeyBindingUtils.setupStandardKeyBindings(this, this);
+    }
+
+    @Override
+    public void saveAndClose() {
+        saveChanges();
+        commandModified = true;
+        dispose();
+    }
+
+    @Override
+    public void cancelAndClose() {
+        commandModified = false;
+        dispose();
     }
 
     private void initComponents() {

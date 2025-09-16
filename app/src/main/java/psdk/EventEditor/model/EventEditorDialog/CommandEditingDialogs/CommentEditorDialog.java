@@ -11,7 +11,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CommentEditorDialog extends JDialog implements DialogKeyBindingUtils.SaveableDialog{
+public class CommentEditorDialog extends JDialog implements DialogKeyBindingUtils.SaveableDialog {
 
     private List<EventCommand> commentCommands; // Liste des commandes de commentaire (108 + 408s)
     private JTextArea textArea;

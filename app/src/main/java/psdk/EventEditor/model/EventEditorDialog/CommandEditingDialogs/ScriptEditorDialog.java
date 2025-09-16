@@ -3,6 +3,7 @@ package psdk.EventEditor.model.EventEditorDialog.CommandEditingDialogs;
 import libs.json.JSONArray;
 import libs.json.JSONException;
 import psdk.EventEditor.model.EventCommand;
+import psdk.EventEditor.utils.DialogKeyBindingUtils;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -10,7 +11,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ScriptEditorDialog extends JDialog {
+public class ScriptEditorDialog extends JDialog implements DialogKeyBindingUtils.SaveableDialog {
 
     private List<EventCommand> scriptCommands; // Liste des commandes de script (355 + 655s)
     private JTextArea textArea;
@@ -46,6 +47,24 @@ public class ScriptEditorDialog extends JDialog {
 
         initComponents();
         loadScriptData();
+        setupKeyBindings();
+    }
+
+    private void setupKeyBindings() {
+        DialogKeyBindingUtils.setupStandardKeyBindings(this, this);
+    }
+
+    @Override
+    public void saveAndClose() {
+        saveChanges();
+        commandModified = true;
+        dispose();
+    }
+
+    @Override
+    public void cancelAndClose() {
+        commandModified = false;
+        dispose();
     }
 
     private void initComponents() {

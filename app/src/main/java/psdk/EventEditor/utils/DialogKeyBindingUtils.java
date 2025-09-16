@@ -32,6 +32,25 @@ public class DialogKeyBindingUtils {
     }
     
     /**
+     * Interface for dialogs that have OK/Cancel behavior (like confirmation dialogs).
+     */
+    public interface ConfirmableDialog {
+        /**
+         * Called when the dialog should accept/confirm and close.
+         */
+        void acceptAndClose();
+        
+        /**
+         * Called when the dialog should cancel and close.
+         */
+        default void cancelAndClose() {
+            if (this instanceof JDialog) {
+                ((JDialog) this).dispose();
+            }
+        }
+    }
+    
+    /**
      * Sets up standard key bindings for a dialog.
      * - Shift+Enter: Save and close
      * - Escape: Cancel and close
@@ -65,23 +84,44 @@ public class DialogKeyBindingUtils {
     }
     
     /**
-     * Sets up only the save and close key binding (Shift+Enter).
-     * Use this when you don't want the Escape key binding or want to handle it separately.
+     * Sets up standard key bindings for a confirmable dialog (OK/Cancel style).
+     * - Shift+Enter or Enter: Accept and close
+     * - Escape: Cancel and close
      * 
-     * @param dialog The dialog to set up key bindings for. Must implement SaveableDialog.
+     * @param dialog The dialog to set up key bindings for. Must implement ConfirmableDialog.
      */
-    public static void setupSaveKeyBinding(JDialog dialog, SaveableDialog saveableDialog) {
+    public static void setupConfirmableKeyBindings(JDialog dialog, ConfirmableDialog confirmableDialog) {
         JRootPane rootPane = dialog.getRootPane();
         InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         ActionMap actionMap = rootPane.getActionMap();
         
-        // Shift+Enter: Save and close
+        // Shift+Enter: Accept and close
         KeyStroke shiftEnter = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, KeyEvent.SHIFT_DOWN_MASK);
-        inputMap.put(shiftEnter, "saveAndClose");
-        actionMap.put("saveAndClose", new AbstractAction() {
+        inputMap.put(shiftEnter, "acceptAndClose");
+        actionMap.put("acceptAndClose", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                saveableDialog.saveAndClose();
+                confirmableDialog.acceptAndClose();
+            }
+        });
+        
+        // Enter: Also accept and close (for convenience)
+        KeyStroke enter = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0);
+        inputMap.put(enter, "acceptAndCloseEnter");
+        actionMap.put("acceptAndCloseEnter", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                confirmableDialog.acceptAndClose();
+            }
+        });
+        
+        // Escape: Cancel and close
+        KeyStroke escape = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+        inputMap.put(escape, "cancelAndClose");
+        actionMap.put("cancelAndClose", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                confirmableDialog.cancelAndClose();
             }
         });
     }

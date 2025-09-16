@@ -9,7 +9,6 @@ import psdk.EventEditor.views.EditorView;
 import psdk.EventEditor.views.MainMenu;
 
 public class Core {
-    // Constantes pour les noms des views
     private static final String MAIN_MENU_VIEW = "MainMenu";
     private static final String EDITOR_VIEW = "Editor";
     
@@ -18,7 +17,6 @@ public class Core {
     private static CardLayout cardLayout;
     private static String currentProjectPath;
     
-    // Références aux views principales
     private static MainMenu mainMenu;
     private static EditorView editorView;
 
@@ -32,7 +30,7 @@ public class Core {
     }
     
     private static void initializeUI() {
-        frame = new JFrame("PSDK RMXP Project Editor");
+        frame = new JFrame("PSDK RMXP Project Editor - PIAAAAAA!!!! engine");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1280, 720);
         frame.setLocationRelativeTo(null);
@@ -51,7 +49,6 @@ public class Core {
             currentProjectPath = null;
         }
         
-        // Créer le menu principal
         mainMenu = new MainMenu(currentProjectPath);
         cardPanel.add(mainMenu, MAIN_MENU_VIEW);
     }
@@ -62,15 +59,14 @@ public class Core {
 
     public static void showEditor() {
         try {
-            // Recharger le path depuis la config
+            // Reload path in case it changed
             currentProjectPath = ConfigManager.loadProjectPath();
             
             if (currentProjectPath == null || currentProjectPath.trim().isEmpty()) {
-                System.err.println("Aucun projet configuré");
+                System.err.println("No project path set.");
                 return;
             }
             
-            // Créer ou recréer l'editor view si nécessaire
             if (editorView != null) {
                 cardPanel.remove(editorView);
             }
@@ -78,16 +74,13 @@ public class Core {
             editorView = new EditorView(currentProjectPath);
             cardPanel.add(editorView, EDITOR_VIEW);
             
-            // Afficher l'editor
             showView(EDITOR_VIEW);
             
-            // Rafraîchir l'UI
             frame.revalidate();
             frame.repaint();
             
         } catch (Exception e) {
-            System.err.println("Erreur lors de l'ouverture de l'editor : " + e.getMessage());
-            // Retourner au menu principal en cas d'erreur
+            System.err.println("[Core] Error opening EditorView : " + e.getMessage());
             showView(MAIN_MENU_VIEW);
         }
     }
