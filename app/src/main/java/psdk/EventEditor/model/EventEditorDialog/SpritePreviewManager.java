@@ -143,45 +143,46 @@ public class SpritePreviewManager {
         }
     }
     
-    /**
-     * Calcule les coordonnées d'une frame dans la spritesheet
-     */
-    private static FrameCoordinates calculateFrameCoordinates(int characterIndex, int direction, int pattern, BufferedImage fullImage) {
-        // Convertir la direction RPG Maker XP en index de ligne (0-3)
-        int directionIndex;
-        switch (direction) {
-            case 2: directionIndex = 0; break; // Down
-            case 4: directionIndex = 1; break; // Left
-            case 6: directionIndex = 2; break; // Right
-            case 8: directionIndex = 3; break; // Up
-            default: 
-                System.err.println("ERROR: Invalid direction: " + direction);
-                return null;
-        }
-        
-        // Vérifier les paramètres
-        if (pattern < 0 || pattern >= FRAMES_PER_CHARACTER) {
-            System.err.println("ERROR: Invalid pattern: " + pattern + " (must be 0-" + (FRAMES_PER_CHARACTER-1) + ")");
+/**
+ * Calcule les coordonnées d'une frame dans la spritesheet
+ * Structure RPG Maker XP : 4x4 grid, Pattern détermine la colonne, Direction détermine la ligne
+ */
+private static FrameCoordinates calculateFrameCoordinates(int characterIndex, int direction, int pattern, BufferedImage fullImage) {
+    // Convertir la direction RPG Maker XP en index de ligne (0-3)
+    int directionIndex;
+    switch (direction) {
+        case 2: directionIndex = 0; break; // Down (ligne 1)
+        case 4: directionIndex = 1; break; // Left (ligne 2)
+        case 6: directionIndex = 2; break; // Right (ligne 3)
+        case 8: directionIndex = 3; break; // Up (ligne 4)
+        default: 
+            System.err.println("ERROR: Invalid direction: " + direction);
             return null;
-        }
-        
-        // Calculer la position du personnage dans la grille
-        int characterRow = characterIndex / CHARACTERS_PER_ROW;
-        int characterCol = characterIndex % CHARACTERS_PER_ROW;
-        
-        // Calculer les coordonnées de la frame
-        int frameX = (characterCol * FRAMES_PER_CHARACTER * SPRITE_WIDTH) + (pattern * SPRITE_WIDTH);
-        int frameY = (characterRow * DIRECTIONS_PER_CHARACTER * SPRITE_HEIGHT) + (directionIndex * SPRITE_HEIGHT);
-        
-        // Vérifier que les coordonnées sont dans les limites de l'image
-        if (frameX + SPRITE_WIDTH > fullImage.getWidth() || frameY + SPRITE_HEIGHT > fullImage.getHeight()) {
-            System.err.println("ERROR: Frame coordinates out of bounds - Frame: (" + frameX + "," + frameY + "), Image size: " + fullImage.getWidth() + "x" + fullImage.getHeight());
-            System.err.println("ERROR: Character index " + characterIndex + " may be invalid for this spritesheet");
-            return null;
-        }
-        
-        return new FrameCoordinates(frameX, frameY, SPRITE_WIDTH, SPRITE_HEIGHT);
     }
+    
+    // Vérifier les paramètres - pattern peut aller de 0 à 3 pour une grille 4x4
+    if (pattern < 0 || pattern >= 4) {
+        System.err.println("ERROR: Invalid pattern: " + pattern + " (must be 0-3 for 4x4 grid)");
+        return null;
+    }
+    
+    // Dans une spritesheet 4x4 de RPG Maker XP :
+    // - Pattern détermine la colonne (0-3)
+    // - Direction détermine la ligne (0-3)
+    // - Character Index n'affecte PAS la position dans cette sheet spécifique
+    int frameX = pattern * SPRITE_WIDTH;
+    int frameY = directionIndex * SPRITE_HEIGHT;
+    
+    // Vérifier que les coordonnées sont dans les limites de l'image
+    if (frameX + SPRITE_WIDTH > fullImage.getWidth() || frameY + SPRITE_HEIGHT > fullImage.getHeight()) {
+        System.err.println("ERROR: Frame coordinates out of bounds - Frame: (" + frameX + "," + frameY + "), Image size: " + fullImage.getWidth() + "x" + fullImage.getHeight());
+        return null;
+    }
+    
+    System.out.println("DEBUG: Calculated coordinates - Direction: " + direction + " (row " + directionIndex + "), Pattern: " + pattern + " (col " + pattern + ") → (" + frameX + "," + frameY + ")");
+    
+    return new FrameCoordinates(frameX, frameY, SPRITE_WIDTH, SPRITE_HEIGHT);
+}
     
     /**
      * Classe pour stocker les coordonnées d'une frame
