@@ -18,6 +18,7 @@ import javax.swing.SwingUtilities;
 
 import libs.json.JSONArray;
 import libs.json.JSONObject;
+import psdk.EventEditor.ConfigManager;
 import psdk.EventEditor.model.Editor;
 import psdk.EventEditor.model.Event;
 import psdk.EventEditor.model.EventLoader;
@@ -63,6 +64,7 @@ public class EditorView extends JPanel {
         
         initializeState();
         initializeUI();
+        loadLastOpenedMapIfExists();
     }
     
     private void initializeState() {
@@ -83,6 +85,26 @@ public class EditorView extends JPanel {
         
         // Layout components
         layoutComponents();
+    }
+    
+    /**
+     * Load the last opened map automatically when the editor starts
+     */
+    private void loadLastOpenedMapIfExists() {
+        SwingUtilities.invokeLater(() -> {
+            String lastMapPath = ConfigManager.loadLastOpenedMap();
+            if (lastMapPath != null) {
+                File lastMapFile = new File(lastMapPath);
+                if (lastMapFile.exists() && lastMapFile.isFile()) {
+                    System.out.println("Loading last opened map: " + lastMapPath);
+                    onMapSelected(lastMapFile);
+                } else {
+                    System.out.println("Last opened map file not found, cleared from config");
+                }
+            } else {
+                System.out.println("No last opened map found");
+            }
+        });
     }
     
     private void createMapListPanel() {
@@ -149,6 +171,9 @@ public class EditorView extends JPanel {
         }
         
         currentYmlFile = ymlFile;
+        
+        // Save the selected map as the last opened map
+        ConfigManager.saveLastOpenedMap(ymlFile.getAbsolutePath());
         
         try {
             resetVisualizerScrolls();

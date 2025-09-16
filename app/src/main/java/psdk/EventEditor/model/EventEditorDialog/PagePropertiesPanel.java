@@ -1,629 +1,649 @@
 package psdk.EventEditor.model.EventEditorDialog;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
+import javax.swing.*;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
+import java.awt.*;
 
 import libs.json.JSONObject;
-import psdk.EventEditor.ConfigManager;
 import psdk.EventEditor.model.EventPage;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.io.File;
-import java.awt.Dimension;
-import java.awt.Image;
-
 public class PagePropertiesPanel extends JPanel {
+    
+    // Constants
+    private static final Color BACKGROUND_COLOR = new Color(236, 233, 216);
+    private static final Dimension GRAPHIC_PANEL_SIZE = new Dimension(200, 200);
+    private static final Dimension OPTIONS_PANEL_SIZE = new Dimension(150, 150);
+    private static final Dimension CHARACTER_PREVIEW_SIZE = new Dimension(96, 96);
+    private static final Dimension BUTTON_SIZE = new Dimension(30, 25);
+    
+    // Direction mappings
+    private static final String[] DIRECTION_ARROWS = {"↑", "→", "↓", "←"};
+    private static final int[] DIRECTION_VALUES = {8, 6, 2, 4}; // RPG Maker XP values
+    
+    // Model
     private EventPage currentEventPage;
-
-
-    // Page properties components
-    private JCheckBox switchCondition;
-    private JTextField switchField;
-    private JCheckBox variableCondition;
-    private JTextField variableField;
-    private JComboBox<String> variableComparison;
-    private JTextField variableValue;
-    private JCheckBox selfSwitchCondition;
-    private JComboBox<String> selfSwitchValue;
-
-    // Graphic components
-    private JLabel characterPreview;
-    private JButton characterButton;
-    private JComboBox<String> directionCombo;
-
-    // Movement components
-    private JComboBox<String> moveType;
-    private JComboBox<String> moveSpeed;
-    private JComboBox<String> moveFreq;
-    private JButton moveRouteButton;
     
-    // Options components
-    private JCheckBox moveAnimation;
-    private JCheckBox stopAnimation;
-    private JCheckBox directionFix;
-    private JCheckBox through;
-    private JCheckBox alwaysOnTop;
-    
-    // Trigger components
-    private ButtonGroup triggerGroup;
-    private JRadioButton actionButton;
-    private JRadioButton playerTouch;
-    private JRadioButton eventTouch;
-    private JRadioButton autorun;
-    private JRadioButton parallelProcess;
+    // UI Components - organized by section
+    private ConditionComponents conditionComponents;
+    private GraphicComponents graphicComponents;
+    private MovementComponents movementComponents;
+    private OptionComponents optionComponents;
+    private TriggerComponents triggerComponents;
 
-public PagePropertiesPanel() {
-        // 1. Définir la disposition (layout) du PagePropertiesPanel lui-même
-        this.setLayout(new BorderLayout()); // Utilise BorderLayout pour la disposition principale du panneau
-        this.setBackground(new Color(236, 233, 216)); // Définir la couleur d'arrière-plan pour le panneau entier
-
-        // 2. Créer un nouveau JPanel qui contiendra toutes les sections (conditions, graphisme, etc.)
-        JPanel contentPanel = new JPanel();
-        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS)); // Disposition verticale pour les sections
-        contentPanel.setBackground(new Color(236, 233, 216));
-        contentPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
-        // Conditions panel
-        contentPanel.add(createConditionsPanel());
-        contentPanel.add(Box.createVerticalStrut(5));
-
-        // Create a horizontal panel for Graphic and Autonomous Movement
-        JPanel horizontalPanel = new JPanel(new BorderLayout());
-        horizontalPanel.setBackground(new Color(236, 233, 216));
-        
-        // Graphic panel (left side)
-        JPanel graphicPanel = createGraphicPanel();
-        horizontalPanel.add(graphicPanel, BorderLayout.WEST);
-        
-        // Autonomous Movement panel (right side)
-        JPanel movementPanel = createMovementPanel();
-        horizontalPanel.add(movementPanel, BorderLayout.CENTER);
-        
-        contentPanel.add(horizontalPanel);
-        contentPanel.add(Box.createVerticalStrut(5));
-
-        // Options and Trigger in horizontal layout
-        JPanel optionsTriggersPanel = new JPanel(new BorderLayout());
-        optionsTriggersPanel.setBackground(new Color(236, 233, 216));
-        
-        // Options panel (left)
-        JPanel optionsPanel = createOptionsPanel();
-        optionsTriggersPanel.add(optionsPanel, BorderLayout.WEST);
-        
-        // Trigger panel (right)
-        JPanel triggerPanel = createTriggerPanel();
-        optionsTriggersPanel.add(triggerPanel, BorderLayout.CENTER);
-        
-        contentPanel.add(optionsTriggersPanel);
-        contentPanel.add(Box.createVerticalGlue());
-
-        // 3. Ajouter le 'contentPanel' (qui contient tout) au PagePropertiesPanel lui-même (this)
-        this.add(new JScrollPane(contentPanel), BorderLayout.CENTER); // Ajoute le panneau de contenu dans un JScrollPane
-        // --- FIN DES MODIFICATIONS ---
+    public PagePropertiesPanel() {
+        initializePanel();
+        createComponents();
+        layoutComponents();
+        setupEventListeners();
     }
 
-    private JPanel createConditionsPanel() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBackground(new Color(236, 233, 216));
-        TitledBorder border = BorderFactory.createTitledBorder(
-            BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Conditions");
-        panel.setBorder(border);
+    // ========== INITIALIZATION ==========
+    
+    private void initializePanel() {
+        setLayout(new BorderLayout());
+        setBackground(BACKGROUND_COLOR);
+    }
+    
+    private void createComponents() {
+        conditionComponents = new ConditionComponents();
+        graphicComponents = new GraphicComponents();
+        movementComponents = new MovementComponents();
+        optionComponents = new OptionComponents();
+        triggerComponents = new TriggerComponents();
+    }
+    
+    private void layoutComponents() {
+        JPanel contentPanel = createMainContentPanel();
+        add(new JScrollPane(contentPanel), BorderLayout.CENTER);
+    }
+    
+    private JPanel createMainContentPanel() {
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBackground(BACKGROUND_COLOR);
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(2, 2, 2, 2);
-        gbc.anchor = GridBagConstraints.WEST;
-
-        // Switch condition
-        gbc.gridx = 0; gbc.gridy = 0;
-        switchCondition = new JCheckBox("Switch");
-        switchCondition.setBackground(new Color(236, 233, 216));
-        panel.add(switchCondition, gbc);
-
-        gbc.gridx = 1; gbc.gridwidth = 2;
-        switchField = new JTextField(15); // Set preferred column width
-        switchField.setEnabled(false);
-        panel.add(switchField, gbc);
-
-        gbc.gridx = 3; gbc.gridwidth = 1;
-        panel.add(new JLabel("is ON"), gbc);
-
-        // Variable condition
-        gbc.gridx = 0; gbc.gridy = 1;
-        variableCondition = new JCheckBox("Variable");
-        variableCondition.setBackground(new Color(236, 233, 216));
-        panel.add(variableCondition, gbc);
-
-        gbc.gridx = 1;
-        variableField = new JTextField(10); // Set preferred column width
-        variableField.setEnabled(false);
-        panel.add(variableField, gbc);
-
-        gbc.gridx = 2;
-        variableComparison = new JComboBox<>(new String[]{"=", "≥", "≤", ">", "<", "≠"}); // Updated comparison options
-        variableComparison.setEnabled(false);
-        panel.add(variableComparison, gbc);
-
-        gbc.gridx = 3;
-        variableValue = new JTextField(5); // Set preferred column width
-        variableValue.setEnabled(false);
-        panel.add(variableValue, gbc);
-
-        // Self Switch condition
-        gbc.gridx = 0; gbc.gridy = 2;
-        selfSwitchCondition = new JCheckBox("Self Switch");
-        selfSwitchCondition.setBackground(new Color(236, 233, 216));
-        panel.add(selfSwitchCondition, gbc);
-
-        gbc.gridx = 1;
-        selfSwitchValue = new JComboBox<>(new String[]{"A", "B", "C", "D"});
-        selfSwitchValue.setEnabled(false);
-        panel.add(selfSwitchValue, gbc);
-
-        gbc.gridx = 2;
-        panel.add(new JLabel("is ON"), gbc);
-
-        // Enable/disable fields based on checkbox state
-        switchCondition.addActionListener(e -> {
-            boolean enabled = switchCondition.isSelected();
-            switchField.setEnabled(enabled);
-            // If switch is unchecked, clear the text
-            if (!enabled) {
-                switchField.setText("");
-            }
-        });
-        variableCondition.addActionListener(e -> {
-            boolean enabled = variableCondition.isSelected();
-            variableField.setEnabled(enabled);
-            variableComparison.setEnabled(enabled);
-            variableValue.setEnabled(enabled);
-            // If variable is unchecked, clear the texts
-            if (!enabled) {
-                variableField.setText("");
-                variableValue.setText("");
-            }
-        });
-        selfSwitchCondition.addActionListener(e -> selfSwitchValue.setEnabled(selfSwitchCondition.isSelected()));
-
+        // Add sections with spacing
+        contentPanel.add(createConditionsPanel());
+        contentPanel.add(Box.createVerticalStrut(5));
+        
+        contentPanel.add(createGraphicMovementPanel());
+        contentPanel.add(Box.createVerticalStrut(5));
+        
+        contentPanel.add(createOptionsTriggersPanel());
+        contentPanel.add(Box.createVerticalGlue());
+        
+        return contentPanel;
+    }
+    
+    private JPanel createGraphicMovementPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(BACKGROUND_COLOR);
+        panel.add(createGraphicPanel(), BorderLayout.WEST);
+        panel.add(createMovementPanel(), BorderLayout.CENTER);
+        return panel;
+    }
+    
+    private JPanel createOptionsTriggersPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(BACKGROUND_COLOR);
+        panel.add(createOptionsPanel(), BorderLayout.WEST);
+        panel.add(createTriggerPanel(), BorderLayout.CENTER);
         return panel;
     }
 
-
-
-
-
-       private JPanel createGraphicPanel() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBackground(new Color(236, 233, 216));
-        TitledBorder border = BorderFactory.createTitledBorder(
-            BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Graphic");
-        panel.setBorder(border);
-        panel.setPreferredSize(new Dimension(200, 200));
+    // ========== COMPONENT CLASSES ==========
+    
+    private class ConditionComponents {
+        JCheckBox switchCondition, variableCondition, selfSwitchCondition;
+        JTextField switchField, variableField, variableValue;
+        JComboBox<String> variableComparison, selfSwitchValue;
         
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(2, 2, 2, 2);
-        gbc.anchor = GridBagConstraints.WEST;
+        ConditionComponents() {
+            initializeConditionComponents();
+        }
+        
+        private void initializeConditionComponents() {
+            // Switch components
+            switchCondition = createCheckBox("Switch");
+            switchField = new JTextField(15);
+            switchField.setEnabled(false);
+            
+            // Variable components
+            variableCondition = createCheckBox("Variable");
+            variableField = new JTextField(10);
+            variableField.setEnabled(false);
+            variableComparison = new JComboBox<>(new String[]{"=", "≥", "≤", ">", "<", "≠"});
+            variableComparison.setEnabled(false);
+            variableValue = new JTextField(5);
+            variableValue.setEnabled(false);
+            
+            // Self switch components
+            selfSwitchCondition = createCheckBox("Self Switch");
+            selfSwitchValue = new JComboBox<>(new String[]{"A", "B", "C", "D"});
+            selfSwitchValue.setEnabled(false);
+        }
+    }
+    
+    private class GraphicComponents {
+        JLabel characterPreview;
+        JButton characterButton;
+        JComboBox<String> directionCombo;
+        
+        GraphicComponents() {
+            initializeGraphicComponents();
+        }
+        
+        private void initializeGraphicComponents() {
+            characterPreview = createCharacterPreview();
+            characterButton = createStyledButton("Change graphic", BUTTON_SIZE);
+            directionCombo = new JComboBox<>(DIRECTION_ARROWS);
+        }
+    }
+    
+    private class MovementComponents {
+        JComboBox<String> moveType, moveSpeed, moveFreq;
+        JButton moveRouteButton;
+        
+        MovementComponents() {
+            initializeMovementComponents();
+        }
+        
+        private void initializeMovementComponents() {
+            moveType = new JComboBox<>(new String[]{"Fixed", "Random", "Approach", "Custom"});
+            moveSpeed = new JComboBox<>(new String[]{
+                "1: Slowest", "2: Slower", "3: Slow", "4: Normal", "5: Fast", "6: Faster"});
+            moveSpeed.setSelectedIndex(2);
+            moveFreq = new JComboBox<>(new String[]{
+                "1: Lowest", "2: Lower", "3: Low", "4: Normal", "5: High"});
+            moveFreq.setSelectedIndex(2);
+            moveRouteButton = createStyledButton("Move Route...", null);
+            moveRouteButton.setEnabled(false);
+        }
+    }
+    
+    private class OptionComponents {
+        JCheckBox moveAnimation, stopAnimation, directionFix, through, alwaysOnTop;
+        
+        OptionComponents() {
+            initializeOptionComponents();
+        }
+        
+        private void initializeOptionComponents() {
+            moveAnimation = createCheckBox("Move Animation");
+            moveAnimation.setSelected(true);
+            stopAnimation = createCheckBox("Stop Animation");
+            directionFix = createCheckBox("Direction Fix");
+            through = createCheckBox("Through");
+            alwaysOnTop = createCheckBox("Always on Top");
+        }
+    }
+    
+    private class TriggerComponents {
+        ButtonGroup triggerGroup;
+        JRadioButton actionButton, playerTouch, eventTouch, autorun, parallelProcess;
+        
+        TriggerComponents() {
+            initializeTriggerComponents();
+        }
+        
+        private void initializeTriggerComponents() {
+            triggerGroup = new ButtonGroup();
+            
+            actionButton = createRadioButton("Action Button", true);
+            playerTouch = createRadioButton("Player Touch", false);
+            eventTouch = createRadioButton("Event Touch", false);
+            autorun = createRadioButton("Autorun", false);
+            parallelProcess = createRadioButton("Parallel Process", false);
+            
+            triggerGroup.add(actionButton);
+            triggerGroup.add(playerTouch);
+            triggerGroup.add(eventTouch);
+            triggerGroup.add(autorun);
+            triggerGroup.add(parallelProcess);
+        }
+    }
 
-        // Character preview and button
-        gbc.gridx = 0; gbc.gridy = 1;
-        gbc.gridwidth = 2;
-        characterPreview = new JLabel();
-        characterPreview.setPreferredSize(new Dimension(96, 96));
-        characterPreview.setBorder(BorderFactory.createLoweredBevelBorder());
-        characterPreview.setHorizontalAlignment(SwingConstants.CENTER);
-        characterPreview.setVerticalAlignment(SwingConstants.CENTER); // Center text vertically
-        characterPreview.setText("<html><center>No Character<br>Selected</center></html>"); // Placeholder text
-        characterPreview.setBackground(Color.WHITE);
-        characterPreview.setOpaque(true);
-        panel.add(characterPreview, gbc);
-
+    // ========== PANEL CREATION METHODS ==========
+    
+    private JPanel createConditionsPanel() {
+        JPanel panel = createTitledPanel("Conditions", new GridBagLayout());
+        GridBagConstraints gbc = createDefaultConstraints();
+        
+        // Switch condition row
+        addConditionRow(panel, gbc, 0, 
+            conditionComponents.switchCondition, 
+            conditionComponents.switchField, 
+            null, null, "is ON");
+        
+        // Variable condition row
+        addConditionRow(panel, gbc, 1,
+            conditionComponents.variableCondition,
+            conditionComponents.variableField,
+            conditionComponents.variableComparison,
+            conditionComponents.variableValue, null);
+        
+        // Self switch condition row
+        addConditionRow(panel, gbc, 2,
+            conditionComponents.selfSwitchCondition,
+            conditionComponents.selfSwitchValue,
+            null, null, "is ON");
+        
+        return panel;
+    }
+    
+    private JPanel createGraphicPanel() {
+        JPanel panel = createTitledPanel("Graphic", new GridBagLayout());
+        panel.setPreferredSize(GRAPHIC_PANEL_SIZE);
+        GridBagConstraints gbc = createDefaultConstraints();
+        
+        // Character preview
+        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 2;
+        panel.add(graphicComponents.characterPreview, gbc);
+        
+        // Change graphic button
         gbc.gridy = 2;
-        characterButton = new JButton("Change graphic");
-        characterButton.setPreferredSize(new Dimension(30, 25));
-        styleButton(characterButton);
-        // Add action listener to characterButton
-        characterButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Open Character Selection Dialog (Not yet implemented)");
-            updateCharacterPreview(currentEventPage.getCharacterName() + ".png"); 
-        });
-        panel.add(characterButton, gbc);
-
-        // Direction
+        panel.add(graphicComponents.characterButton, gbc);
+        
+        // Direction selection
         gbc.gridwidth = 1;
         gbc.gridx = 0; gbc.gridy = 3;
         panel.add(new JLabel("Direction:"), gbc);
-
         gbc.gridx = 1;
-        directionCombo = new JComboBox<>(new String[]{"↑", "→", "↓", "←"});
-        // Ajouter un listener pour mettre à jour le preview quand la direction change
-        directionCombo.addActionListener(e -> {
+        panel.add(graphicComponents.directionCombo, gbc);
+        
+        return panel;
+    }
+    
+    private JPanel createMovementPanel() {
+        JPanel panel = createTitledPanel("Autonomous Movement", new GridBagLayout());
+        GridBagConstraints gbc = createDefaultConstraints();
+        
+        addLabeledComponent(panel, gbc, 0, "Type:", movementComponents.moveType);
+        addLabeledComponent(panel, gbc, 1, "Speed:", movementComponents.moveSpeed);
+        addLabeledComponent(panel, gbc, 2, "Freq:", movementComponents.moveFreq);
+        
+        // Move Route button
+        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2;
+        panel.add(movementComponents.moveRouteButton, gbc);
+        
+        return panel;
+    }
+    
+    private JPanel createOptionsPanel() {
+        JPanel panel = createTitledPanel("Options", new GridBagLayout());
+        panel.setPreferredSize(OPTIONS_PANEL_SIZE);
+        GridBagConstraints gbc = createDefaultConstraints();
+        
+        addCheckBoxColumn(panel, gbc, new JCheckBox[]{
+            optionComponents.moveAnimation,
+            optionComponents.stopAnimation,
+            optionComponents.directionFix,
+            optionComponents.through,
+            optionComponents.alwaysOnTop
+        });
+        
+        return panel;
+    }
+    
+    private JPanel createTriggerPanel() {
+        JPanel panel = createTitledPanel("Trigger", new GridBagLayout());
+        GridBagConstraints gbc = createDefaultConstraints();
+        
+        addCheckBoxColumn(panel, gbc, new JRadioButton[]{
+            triggerComponents.actionButton,
+            triggerComponents.playerTouch,
+            triggerComponents.eventTouch,
+            triggerComponents.autorun,
+            triggerComponents.parallelProcess
+        });
+        
+        return panel;
+    }
+
+    // ========== UTILITY METHODS ==========
+    
+    private JPanel createTitledPanel(String title, LayoutManager layout) {
+        JPanel panel = new JPanel(layout);
+        panel.setBackground(BACKGROUND_COLOR);
+        TitledBorder border = BorderFactory.createTitledBorder(
+            BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), title);
+        panel.setBorder(border);
+        return panel;
+    }
+    
+    private GridBagConstraints createDefaultConstraints() {
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(2, 2, 2, 2);
+        gbc.anchor = GridBagConstraints.WEST;
+        return gbc;
+    }
+    
+    private JCheckBox createCheckBox(String text) {
+        JCheckBox checkBox = new JCheckBox(text);
+        checkBox.setBackground(BACKGROUND_COLOR);
+        return checkBox;
+    }
+    
+    private JRadioButton createRadioButton(String text, boolean selected) {
+        JRadioButton radioButton = new JRadioButton(text);
+        radioButton.setBackground(BACKGROUND_COLOR);
+        radioButton.setSelected(selected);
+        return radioButton;
+    }
+    
+    private JButton createStyledButton(String text, Dimension size) {
+        JButton button = new JButton(text);
+        button.setBackground(BACKGROUND_COLOR);
+        button.setBorder(BorderFactory.createRaisedBevelBorder());
+        button.setFocusPainted(false);
+        if (size != null) {
+            button.setPreferredSize(size);
+        }
+        return button;
+    }
+    
+    private JLabel createCharacterPreview() {
+        JLabel preview = new JLabel();
+        preview.setPreferredSize(CHARACTER_PREVIEW_SIZE);
+        preview.setBorder(BorderFactory.createLoweredBevelBorder());
+        preview.setHorizontalAlignment(SwingConstants.CENTER);
+        preview.setVerticalAlignment(SwingConstants.CENTER);
+        preview.setText("<html><center>No Character<br>Selected</center></html>");
+        preview.setBackground(Color.WHITE);
+        preview.setOpaque(true);
+        return preview;
+    }
+    
+    private void addConditionRow(JPanel panel, GridBagConstraints gbc, int row,
+                                JComponent checkBox, JComponent field1, 
+                                JComponent field2, JComponent field3, String label) {
+        gbc.gridy = row;
+        
+        gbc.gridx = 0; gbc.gridwidth = 1;
+        panel.add(checkBox, gbc);
+        
+        gbc.gridx = 1;
+        if (field2 == null) { // Two-component row
+            gbc.gridwidth = 2;
+            panel.add(field1, gbc);
+        } else { // Three-component row
+            panel.add(field1, gbc);
+            gbc.gridx = 2;
+            panel.add(field2, gbc);
+            if (field3 != null) {
+                gbc.gridx = 3;
+                panel.add(field3, gbc);
+            }
+        }
+        
+        if (label != null) {
+            gbc.gridx = field3 != null ? 4 : 3;
+            gbc.gridwidth = 1;
+            panel.add(new JLabel(label), gbc);
+        }
+    }
+    
+    private void addLabeledComponent(JPanel panel, GridBagConstraints gbc, int row,
+                                   String labelText, JComponent component) {
+        gbc.gridy = row;
+        gbc.gridx = 0;
+        panel.add(new JLabel(labelText), gbc);
+        gbc.gridx = 1;
+        panel.add(component, gbc);
+    }
+    
+    private void addCheckBoxColumn(JPanel panel, GridBagConstraints gbc, JComponent[] components) {
+        gbc.gridx = 0;
+        for (int i = 0; i < components.length; i++) {
+            gbc.gridy = i;
+            panel.add(components[i], gbc);
+        }
+    }
+
+    // ========== EVENT LISTENERS ==========
+    
+    private void setupEventListeners() {
+        setupConditionListeners();
+        setupGraphicListeners();
+        setupMovementListeners();
+    }
+    
+    private void setupConditionListeners() {
+        conditionComponents.switchCondition.addActionListener(e -> {
+            boolean enabled = conditionComponents.switchCondition.isSelected();
+            conditionComponents.switchField.setEnabled(enabled);
+            if (!enabled) conditionComponents.switchField.setText("");
+        });
+        
+        conditionComponents.variableCondition.addActionListener(e -> {
+            boolean enabled = conditionComponents.variableCondition.isSelected();
+            conditionComponents.variableField.setEnabled(enabled);
+            conditionComponents.variableComparison.setEnabled(enabled);
+            conditionComponents.variableValue.setEnabled(enabled);
+            if (!enabled) {
+                conditionComponents.variableField.setText("");
+                conditionComponents.variableValue.setText("");
+            }
+        });
+        
+        conditionComponents.selfSwitchCondition.addActionListener(e -> 
+            conditionComponents.selfSwitchValue.setEnabled(
+                conditionComponents.selfSwitchCondition.isSelected()));
+    }
+    
+    private void setupGraphicListeners() {
+        graphicComponents.characterButton.addActionListener(e -> {
+            JOptionPane.showMessageDialog(this, "Open Character Selection Dialog (Not yet implemented)");
+            updateCharacterPreview(currentEventPage.getCharacterName() + ".png");
+        });
+        
+        graphicComponents.directionCombo.addActionListener(e -> {
             String characterName = getCurrentCharacterName();
             if (characterName != null && !characterName.isEmpty()) {
                 updateCharacterPreview(characterName);
             }
         });
-        panel.add(directionCombo, gbc);
-
-        return panel;
+    }
+    
+    private void setupMovementListeners() {
+        movementComponents.moveType.addActionListener(e -> 
+            movementComponents.moveRouteButton.setEnabled(
+                movementComponents.moveType.getSelectedItem().equals("Custom")));
     }
 
-
-
-    private JPanel createMovementPanel() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBackground(new Color(236, 233, 216));
-        TitledBorder border = BorderFactory.createTitledBorder(
-            BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Autonomous Movement");
-        panel.setBorder(border);
+    // ========== PUBLIC API METHODS ==========
+    
+    public void updatePageProperties(EventPage page) {
+        if (page == null) {
+            clearAllFields();
+            return;
+        }
         
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(2, 2, 2, 2);
-        gbc.anchor = GridBagConstraints.WEST;
-
-        // Type
-        gbc.gridx = 0; gbc.gridy = 0;
-        panel.add(new JLabel("Type:"), gbc);
-
-        gbc.gridx = 1;
-        moveType = new JComboBox<>(new String[]{"Fixed", "Random", "Approach", "Custom"});
-        panel.add(moveType, gbc);
-
-        // Speed
-        gbc.gridx = 0; gbc.gridy = 1;
-        panel.add(new JLabel("Speed:"), gbc);
-
-        gbc.gridx = 1;
-        moveSpeed = new JComboBox<>(new String[]{"1: Slowest", "2: Slower", "3: Slow", "4: Normal", "5: Fast", "6: Faster"});
-        moveSpeed.setSelectedIndex(2);
-        panel.add(moveSpeed, gbc);
-
-        // Frequency
-        gbc.gridx = 0; gbc.gridy = 2;
-        panel.add(new JLabel("Freq:"), gbc);
-
-        gbc.gridx = 1;
-        moveFreq = new JComboBox<>(new String[]{"1: Lowest", "2: Lower", "3: Low", "4: Normal", "5: High"});
-        moveFreq.setSelectedIndex(2);
-        panel.add(moveFreq, gbc);
-
-        // Move Route button
-        gbc.gridx = 0; gbc.gridy = 3;
-        gbc.gridwidth = 2;
-        moveRouteButton = new JButton("Move Route...");
-        moveRouteButton.setEnabled(false);
-        styleButton(moveRouteButton);
-        panel.add(moveRouteButton, gbc);
-
-        // Enable Move Route button only for Custom type
-        moveType.addActionListener(e -> {
-            moveRouteButton.setEnabled(moveType.getSelectedItem().equals("Custom"));
-        });
-
-        return panel;
+        currentEventPage = page;
+        updateConditions(page);
+        updateGraphic(page);
+        updateMovement(page);
+        updateOptions(page);
+        updateTrigger(page);
     }
-
-    private JPanel createOptionsPanel() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBackground(new Color(236, 233, 216));
-        TitledBorder border = BorderFactory.createTitledBorder(
-            BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Options");
-        panel.setBorder(border);
-        panel.setPreferredSize(new Dimension(150, 150));
+    
+    private void updateConditions(EventPage page) {
+        JSONObject condition = page.getCondition();
         
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(2, 2, 2, 2);
-        gbc.anchor = GridBagConstraints.WEST;
-
-        gbc.gridx = 0; gbc.gridy = 0;
-        moveAnimation = new JCheckBox("Move Animation");
-        moveAnimation.setSelected(true);
-        moveAnimation.setBackground(new Color(236, 233, 216));
-        panel.add(moveAnimation, gbc);
-
-        gbc.gridy = 1;
-        stopAnimation = new JCheckBox("Stop Animation");
-        stopAnimation.setBackground(new Color(236, 233, 216));
-        panel.add(stopAnimation, gbc);
-
-        gbc.gridy = 2;
-        directionFix = new JCheckBox("Direction Fix");
-        directionFix.setBackground(new Color(236, 233, 216));
-        panel.add(directionFix, gbc);
-
-        gbc.gridy = 3;
-        through = new JCheckBox("Through");
-        through.setBackground(new Color(236, 233, 216));
-        panel.add(through, gbc);
-
-        gbc.gridy = 4;
-        alwaysOnTop = new JCheckBox("Always on Top");
-        alwaysOnTop.setBackground(new Color(236, 233, 216));
-        panel.add(alwaysOnTop, gbc);
-
-        return panel;
-    }
-
-    private JPanel createTriggerPanel() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBackground(new Color(236, 233, 216));
-        TitledBorder border = BorderFactory.createTitledBorder(
-            BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Trigger");
-        panel.setBorder(border);
+        // Switch condition
+        boolean hasSwitch = condition.optBoolean("switch1_valid", false);
+        conditionComponents.switchCondition.setSelected(hasSwitch);
+        conditionComponents.switchField.setEnabled(hasSwitch);
+        conditionComponents.switchField.setText(hasSwitch ? 
+            String.format("%04d", condition.optInt("switch1_id", 0)) : "");
         
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(2, 2, 2, 2);
-        gbc.anchor = GridBagConstraints.WEST;
-
-        triggerGroup = new ButtonGroup();
-
-        gbc.gridx = 0; gbc.gridy = 0;
-        actionButton = new JRadioButton("Action Button");
-        actionButton.setSelected(true);
-        actionButton.setBackground(new Color(236, 233, 216));
-        triggerGroup.add(actionButton);
-        panel.add(actionButton, gbc);
-
-        gbc.gridy = 1;
-        playerTouch = new JRadioButton("Player Touch");
-        playerTouch.setBackground(new Color(236, 233, 216));
-        triggerGroup.add(playerTouch);
-        panel.add(playerTouch, gbc);
-
-        gbc.gridy = 2;
-        eventTouch = new JRadioButton("Event Touch");
-        eventTouch.setBackground(new Color(236, 233, 216));
-        triggerGroup.add(eventTouch);
-        panel.add(eventTouch, gbc);
-
-        gbc.gridy = 3;
-        autorun = new JRadioButton("Autorun");
-        autorun.setBackground(new Color(236, 233, 216));
-        triggerGroup.add(autorun);
-        panel.add(autorun, gbc);
-
-        gbc.gridy = 4;
-        parallelProcess = new JRadioButton("Parallel Process");
-        parallelProcess.setBackground(new Color(236, 233, 216));
-        triggerGroup.add(parallelProcess);
-        panel.add(parallelProcess, gbc);
-
-        return panel;
-    }
-
-
-
-    private void styleButton(JButton button) {
-        button.setBackground(new Color(236, 233, 216));
-        button.setBorder(BorderFactory.createRaisedBevelBorder());
-        button.setFocusPainted(false);
-    }
-
-
-
-
-
-
-
-
-
-public void updatePageProperties(EventPage page) {
-    if (page == null) {
-        // Clear all fields if no page is provided
-        clearAllFields();
-        return;
-    }
-
-    currentEventPage = page;
-
-    // --- CONDITIONS ---
-    JSONObject condition = page.getCondition();
-    
-    // Switch Condition (switch1_valid)
-    boolean hasSwitch = condition.optBoolean("switch1_valid", false);
-    switchCondition.setSelected(hasSwitch);
-    switchField.setEnabled(hasSwitch);
-    if (hasSwitch) {
-        int switchId = condition.optInt("switch1_id", 0);
-        switchField.setText(String.format("%04d", switchId)); // Format as 4-digit ID
-    } else {
-        switchField.setText("");
-    }
-
-    // Variable Condition
-    boolean hasVariable = condition.optBoolean("variable_valid", false);
-    variableCondition.setSelected(hasVariable);
-    variableField.setEnabled(hasVariable);
-    variableComparison.setEnabled(hasVariable);
-    variableValue.setEnabled(hasVariable);
-    if (hasVariable) {
-        int variableId = condition.optInt("variable_id", 0);
-        int variableVal = condition.optInt("variable_value", 0);
-        variableField.setText(String.format("%04d", variableId));
-        variableValue.setText(String.valueOf(variableVal));
-        // Note: RPG Maker XP uses different comparison types, you might need to map them
-        // For now, defaulting to "=" - you may need to add comparison type to EventPage
-        variableComparison.setSelectedItem("=");
-    } else {
-        variableField.setText("");
-        variableValue.setText("");
-    }
-
-    // Self Switch Condition
-    boolean hasSelfSwitch = condition.optBoolean("self_switch_valid", false);
-    selfSwitchCondition.setSelected(hasSelfSwitch);
-    selfSwitchValue.setEnabled(hasSelfSwitch);
-    if (hasSelfSwitch) {
-        String selfSwitchCh = condition.optString("self_switch_ch", "A");
-        selfSwitchValue.setSelectedItem(selfSwitchCh);
-    } else {
-        selfSwitchValue.setSelectedItem("A"); // Default
-    }
-
-    // --- GRAPHIC ---
-    JSONObject graphic = page.getGraphic();
-    String characterName = page.getCharacterName();
-    int characterIndex = page.getCharacterIndex();
-    int direction = page.getDirection();
-    int pattern = page.getPattern();
-    
-    // Determine graphic type based on character name
-    if (characterName == null || characterName.isEmpty()) {
-        SpritePreviewManager.clearPreview(characterPreview);
-    } else {
-        // Utiliser les vraies valeurs de l'EventPage
-        SpritePreviewManager.updateSpritePreview(characterPreview, characterName, characterIndex, direction, pattern);
-    }
-
-    // Direction mapping: RPG Maker XP uses 2=Down, 4=Left, 6=Right, 8=Up
-    switch (direction) {
-        case 8: directionCombo.setSelectedItem("↑"); break;
-        case 6: directionCombo.setSelectedItem("→"); break;
-        case 2: directionCombo.setSelectedItem("↓"); break;
-        case 4: directionCombo.setSelectedItem("←"); break;
-        default: directionCombo.setSelectedItem("↓"); break; // Default
-    }
-
-    // --- MOVEMENT ---
-    int moveType = page.getMove_type();
-    switch (moveType) {
-        case 0: this.moveType.setSelectedItem("Fixed"); break;
-        case 1: this.moveType.setSelectedItem("Random"); break;
-        case 2: this.moveType.setSelectedItem("Approach"); break;
-        case 3: this.moveType.setSelectedItem("Custom"); break;
-        default: this.moveType.setSelectedItem("Fixed"); break;
-    }
-
-    // Move Speed (RPG Maker XP uses 1-6)
-    int speed = page.getMoveSpeed();
-    if (speed >= 1 && speed <= 6) {
-        moveSpeed.setSelectedIndex(speed - 1);
-    } else {
-        moveSpeed.setSelectedIndex(2); // Default to "3: Slow"
-    }
-
-    // Move Frequency (RPG Maker XP uses 1-5)
-    int frequency = page.getMoveFrequency();
-    if (frequency >= 1 && frequency <= 5) {
-        moveFreq.setSelectedIndex(frequency - 1);
-    } else {
-        moveFreq.setSelectedIndex(2); // Default to "3: Low"
-    }
-
-    // Enable Move Route button only for Custom type
-    moveRouteButton.setEnabled(moveType == 3);
-
-    // --- OPTIONS ---
-    moveAnimation.setSelected(page.isWalkAnime());
-    stopAnimation.setSelected(page.isStepAnime());
-    directionFix.setSelected(page.isDirectionFix());
-    through.setSelected(page.isThrough());
-    alwaysOnTop.setSelected(page.isAlwaysOnTop());
-
-    // --- TRIGGER ---
-    int trigger = page.getTrigger();
-    switch (trigger) {
-        case 0: actionButton.setSelected(true); break;
-        case 1: playerTouch.setSelected(true); break;
-        case 2: eventTouch.setSelected(true); break;
-        case 3: autorun.setSelected(true); break;
-        case 4: parallelProcess.setSelected(true); break;
-        default: actionButton.setSelected(true); break;
-    }
-}
-
-/**
- * Helper method to clear all fields when no page is provided
- */
-private void clearAllFields() {
-    // Clear conditions
-    switchCondition.setSelected(false);
-    switchField.setText("");
-    switchField.setEnabled(false);
-    
-    variableCondition.setSelected(false);
-    variableField.setText("");
-    variableComparison.setSelectedItem("=");
-    variableValue.setText("");
-    variableField.setEnabled(false);
-    variableComparison.setEnabled(false);
-    variableValue.setEnabled(false);
-    
-    selfSwitchCondition.setSelected(false);
-    selfSwitchValue.setSelectedItem("A");
-    selfSwitchValue.setEnabled(false);
-    
-    SpritePreviewManager.clearPreview(characterPreview);
-    directionCombo.setSelectedItem("↓");
-    
-    // Clear movement
-    moveType.setSelectedItem("Fixed");
-    moveSpeed.setSelectedIndex(2);
-    moveFreq.setSelectedIndex(2);
-    moveRouteButton.setEnabled(false);
-    
-    // Clear options
-    moveAnimation.setSelected(true);
-    stopAnimation.setSelected(false);
-    directionFix.setSelected(false);
-    through.setSelected(false);
-    alwaysOnTop.setSelected(false);
-    
-    // Clear trigger
-    actionButton.setSelected(true);
-}
-
-/**
-     * Updates the character preview JLabel with the specified character sprite.
-     * @param characterFileName The filename of the character sprite (e.g., "Actor1.png").
-     */
-    private void updateCharacterPreview(String characterFileName) {
-        // Utiliser les valeurs par défaut pour character index et pattern
-        int characterIndex = 0;  // Premier personnage de la spritesheet
-        int direction = getDirectionFromCombo();  // Direction actuelle sélectionnée
-        int pattern = 1;  // Pattern central (frame du milieu)
+        // Variable condition
+        boolean hasVariable = condition.optBoolean("variable_valid", false);
+        conditionComponents.variableCondition.setSelected(hasVariable);
+        setComponentsEnabled(hasVariable, conditionComponents.variableField, 
+            conditionComponents.variableComparison, conditionComponents.variableValue);
         
-        SpritePreviewManager.updateSpritePreview(characterPreview, characterFileName, characterIndex, direction, pattern);
+        if (hasVariable) {
+            conditionComponents.variableField.setText(
+                String.format("%04d", condition.optInt("variable_id", 0)));
+            conditionComponents.variableValue.setText(
+                String.valueOf(condition.optInt("variable_value", 0)));
+            conditionComponents.variableComparison.setSelectedItem("=");
+        } else {
+            conditionComponents.variableField.setText("");
+            conditionComponents.variableValue.setText("");
+        }
+        
+        // Self switch condition
+        boolean hasSelfSwitch = condition.optBoolean("self_switch_valid", false);
+        conditionComponents.selfSwitchCondition.setSelected(hasSelfSwitch);
+        conditionComponents.selfSwitchValue.setEnabled(hasSelfSwitch);
+        conditionComponents.selfSwitchValue.setSelectedItem(
+            hasSelfSwitch ? condition.optString("self_switch_ch", "A") : "A");
     }
-
-    /**
-     * Convertit la sélection du combo de direction en valeur RPG Maker XP
-     */
-    private int getDirectionFromCombo() {
-        String selectedDirection = (String) directionCombo.getSelectedItem();
-        switch (selectedDirection) {
-            case "↑": return 8;
-            case "→": return 6;
-            case "↓": return 2;
-            case "←": return 4;
-            default: return 2; // Default to down
+    
+    private void updateGraphic(EventPage page) {
+        String characterName = page.getCharacterName();
+        
+        if (characterName == null || characterName.isEmpty()) {
+            SpritePreviewManager.clearPreview(graphicComponents.characterPreview);
+        } else {
+            SpritePreviewManager.updateSpritePreview(
+                graphicComponents.characterPreview, characterName, 
+                page.getCharacterIndex(), page.getDirection(), page.getPattern());
+        }
+        
+        // Set direction combo based on RPG Maker XP direction values
+        setDirectionCombo(page.getDirection());
+    }
+    
+    private void updateMovement(EventPage page) {
+        setComboByIndex(movementComponents.moveType, page.getMove_type(), 
+            new String[]{"Fixed", "Random", "Approach", "Custom"});
+        
+        int speed = page.getMoveSpeed();
+        if (speed >= 1 && speed <= 6) {
+            movementComponents.moveSpeed.setSelectedIndex(speed - 1);
+        }
+        
+        int frequency = page.getMoveFrequency();
+        if (frequency >= 1 && frequency <= 5) {
+            movementComponents.moveFreq.setSelectedIndex(frequency - 1);
+        }
+        
+        movementComponents.moveRouteButton.setEnabled(page.getMove_type() == 3);
+    }
+    
+    private void updateOptions(EventPage page) {
+        optionComponents.moveAnimation.setSelected(page.isWalkAnime());
+        optionComponents.stopAnimation.setSelected(page.isStepAnime());
+        optionComponents.directionFix.setSelected(page.isDirectionFix());
+        optionComponents.through.setSelected(page.isThrough());
+        optionComponents.alwaysOnTop.setSelected(page.isAlwaysOnTop());
+    }
+    
+    private void updateTrigger(EventPage page) {
+        JRadioButton[] buttons = {
+            triggerComponents.actionButton, triggerComponents.playerTouch,
+            triggerComponents.eventTouch, triggerComponents.autorun,
+            triggerComponents.parallelProcess
+        };
+        
+        int trigger = page.getTrigger();
+        if (trigger >= 0 && trigger < buttons.length) {
+            buttons[trigger].setSelected(true);
+        } else {
+            triggerComponents.actionButton.setSelected(true);
         }
     }
-
-    /**
-     * Obtient le nom du personnage actuellement affiché
-     * Dans une vraie implémentation, cela devrait venir de l'EventPage courante
-     */
+    
+    private void clearAllFields() {
+        // Clear conditions
+        conditionComponents.switchCondition.setSelected(false);
+        conditionComponents.switchField.setText("");
+        conditionComponents.switchField.setEnabled(false);
+        
+        conditionComponents.variableCondition.setSelected(false);
+        conditionComponents.variableField.setText("");
+        conditionComponents.variableComparison.setSelectedItem("=");
+        conditionComponents.variableValue.setText("");
+        setComponentsEnabled(false, conditionComponents.variableField,
+            conditionComponents.variableComparison, conditionComponents.variableValue);
+        
+        conditionComponents.selfSwitchCondition.setSelected(false);
+        conditionComponents.selfSwitchValue.setSelectedItem("A");
+        conditionComponents.selfSwitchValue.setEnabled(false);
+        
+        // Clear graphic
+        SpritePreviewManager.clearPreview(graphicComponents.characterPreview);
+        graphicComponents.directionCombo.setSelectedItem("↓");
+        
+        // Clear movement
+        movementComponents.moveType.setSelectedItem("Fixed");
+        movementComponents.moveSpeed.setSelectedIndex(2);
+        movementComponents.moveFreq.setSelectedIndex(2);
+        movementComponents.moveRouteButton.setEnabled(false);
+        
+        // Clear options
+        optionComponents.moveAnimation.setSelected(true);
+        optionComponents.stopAnimation.setSelected(false);
+        optionComponents.directionFix.setSelected(false);
+        optionComponents.through.setSelected(false);
+        optionComponents.alwaysOnTop.setSelected(false);
+        
+        // Clear trigger
+        triggerComponents.actionButton.setSelected(true);
+    }
+    
+    // ========== HELPER METHODS ==========
+    
+    private void setComponentsEnabled(boolean enabled, JComponent... components) {
+        for (JComponent component : components) {
+            component.setEnabled(enabled);
+        }
+    }
+    
+    private void setComboByIndex(JComboBox<String> combo, int value, String[] options) {
+        if (value >= 0 && value < options.length) {
+            combo.setSelectedItem(options[value]);
+        } else if (options.length > 0) {
+            combo.setSelectedItem(options[0]);
+        }
+    }
+    
+    private void setDirectionCombo(int direction) {
+        for (int i = 0; i < DIRECTION_VALUES.length; i++) {
+            if (DIRECTION_VALUES[i] == direction) {
+                graphicComponents.directionCombo.setSelectedItem(DIRECTION_ARROWS[i]);
+                return;
+            }
+        }
+        graphicComponents.directionCombo.setSelectedItem("↓"); // Default
+    }
+    
+    private int getDirectionFromCombo() {
+        String selected = (String) graphicComponents.directionCombo.getSelectedItem();
+        for (int i = 0; i < DIRECTION_ARROWS.length; i++) {
+            if (DIRECTION_ARROWS[i].equals(selected)) {
+                return DIRECTION_VALUES[i];
+            }
+        }
+        return 2; // Default to down
+    }
+    
+    private void updateCharacterPreview(String characterFileName) {
+        int characterIndex = 0;
+        int direction = getDirectionFromCombo();
+        int pattern = 1;
+        
+        SpritePreviewManager.updateSpritePreview(
+            graphicComponents.characterPreview, characterFileName, 
+            characterIndex, direction, pattern);
+    }
+    
     private String getCurrentCharacterName() {
-    String name = currentEventPage.getCharacterName();
-    //System.out.println("DEBUG: getCurrentCharacterName() returns: " + name);
-    return name;
+        return currentEventPage != null ? currentEventPage.getCharacterName() : null;
     }
 }

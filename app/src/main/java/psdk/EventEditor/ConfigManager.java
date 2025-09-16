@@ -14,6 +14,7 @@ public class ConfigManager {
     
     private static final String CONFIG_FILE_NAME = "config.properties";
     private static final String PROJECT_PATH_KEY = "rpg_maker_project_path";
+    private static final String LAST_OPENED_MAP_KEY = "last_opened_map";
     private static final Path CONFIG_PATH = Paths.get(CONFIG_FILE_NAME);
     
     public static void saveProjectPath(String path) {
@@ -22,67 +23,88 @@ public class ConfigManager {
             return;
         }
         
-        // raw saving
-        try {
-            String content = PROJECT_PATH_KEY + "=" + path;
-            Files.write(CONFIG_PATH, content.getBytes(StandardCharsets.UTF_8));
-            System.out.println("Chemin du projet sauvegardé (raw) : " + path);
+        // Use Properties to preserve all existing keys
+        Properties properties = loadProperties();
+        properties.setProperty(PROJECT_PATH_KEY, path);
+        
+        try (OutputStream output = Files.newOutputStream(CONFIG_PATH)) {
+            properties.store(output, "PSDK Event Editor Configuration");
+            System.out.println("Chemin du projet sauvegardé : " + path);
         } catch (IOException e) {
-            System.err.println("Erreur lors de la sauvegarde raw : " + e.getMessage());
-            
-            Properties properties = loadProperties();
-            properties.setProperty(PROJECT_PATH_KEY, path);
-            
-            try (OutputStream output = Files.newOutputStream(CONFIG_PATH)) {
-                properties.store(output, "PSDK Event Editor Configuration");
-                System.out.println("Chemin du projet sauvegardé (fallback) : " + path);
-            } catch (IOException e2) {
-                System.err.println("Erreur lors de la sauvegarde fallback : " + e2.getMessage());
-            }
+            System.err.println("Erreur lors de la sauvegarde : " + e.getMessage());
         }
     }
     
     public static String loadProjectPath() {
-        if (!Files.exists(CONFIG_PATH)) {
-            System.out.println("Fichier de configuration non trouvé");
-            return null;
+        Properties properties = loadProperties();
+        String path = properties.getProperty(PROJECT_PATH_KEY);
+        
+        if (path != null && !path.trim().isEmpty()) {
+            System.out.println("Chemin du projet chargé : " + path);
+            return path.trim();
         }
         
-        // reading raw
-        try {
-            List<String> lines = Files.readAllLines(CONFIG_PATH, StandardCharsets.UTF_8);
-            
-            for (String line : lines) {
-                line = line.trim();
-                
-                if (line.startsWith("#") || line.isEmpty()) {
-                    continue;
-                }
-                
-                if (line.startsWith(PROJECT_PATH_KEY + "=")) {
-                    String path = line.substring((PROJECT_PATH_KEY + "=").length());
-                    
-                    if (path != null && !path.trim().isEmpty()) {
-                        System.out.println("Chemin du projet chargé (raw) : " + path);
-                        return path.trim();
-                    }
-                }
-            }
-            
+        return null;
+    }
+    
+    /**
+     * Save the path of the last opened map file
+     * @param mapFilePath The absolute path to the map file
+     */
+    public static void saveLastOpenedMap(String mapFilePath) {
+        if (mapFilePath == null || mapFilePath.trim().isEmpty()) {
+            System.err.println("Cannot save null or empty map file path");
+            return;
+        }
+        
+        Properties properties = loadProperties();
+        properties.setProperty(LAST_OPENED_MAP_KEY, mapFilePath);
+        
+        try (OutputStream output = Files.newOutputStream(CONFIG_PATH)) {
+            properties.store(output, "PSDK Event Editor Configuration");
+            System.out.println("Last opened map saved: " + mapFilePath);
         } catch (IOException e) {
-            System.err.println("Erreur lors du chargement raw : " + e.getMessage());
-            
-            // Fallback
-            Properties properties = loadProperties();
-            String path = properties.getProperty(PROJECT_PATH_KEY);
-            
-            if (path != null && !path.trim().isEmpty()) {
-                System.out.println("Chemin du projet chargé (fallback) : " + path);
-                return path.trim();
+            System.err.println("Error saving last opened map: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Load the path of the last opened map file
+     * @return The path to the last opened map file, or null if not found
+     */
+    public static String loadLastOpenedMap() {
+        Properties properties = loadProperties();
+        String mapPath = properties.getProperty(LAST_OPENED_MAP_KEY);
+        
+        if (mapPath != null && !mapPath.trim().isEmpty()) {
+            // Verify that the file still exists
+            Path mapFile = Paths.get(mapPath);
+            if (Files.exists(mapFile)) {
+                System.out.println("Last opened map loaded: " + mapPath);
+                return mapPath.trim();
+            } else {
+                System.out.println("Last opened map file no longer exists: " + mapPath);
+                // Clear the invalid path
+                clearLastOpenedMap();
             }
         }
         
         return null;
+    }
+    
+    /**
+     * Clear the last opened map from configuration
+     */
+    public static void clearLastOpenedMap() {
+        Properties properties = loadProperties();
+        properties.remove(LAST_OPENED_MAP_KEY);
+        
+        try (OutputStream output = Files.newOutputStream(CONFIG_PATH)) {
+            properties.store(output, "PSDK Event Editor Configuration");
+            System.out.println("Last opened map cleared");
+        } catch (IOException e) {
+            System.err.println("Error clearing last opened map: " + e.getMessage());
+        }
     }
     
     private static Properties loadProperties() {
@@ -105,8 +127,12 @@ public class ConfigManager {
     }
     
     public static void clearProjectPath() {
-        try {
-            Files.deleteIfExists(CONFIG_PATH);
+        Properties properties = loadProperties();
+        properties.remove(PROJECT_PATH_KEY);
+        properties.remove(LAST_OPENED_MAP_KEY); // Also clear last opened map when clearing project
+        
+        try (OutputStream output = Files.newOutputStream(CONFIG_PATH)) {
+            properties.store(output, "PSDK Event Editor Configuration");
             System.out.println("Chemin du projet supprimé");
         } catch (IOException e) {
             System.err.println("Erreur lors de la suppression : " + e.getMessage());
