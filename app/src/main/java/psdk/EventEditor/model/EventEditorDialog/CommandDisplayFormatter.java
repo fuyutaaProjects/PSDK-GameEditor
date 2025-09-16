@@ -4,68 +4,69 @@ import libs.json.JSONArray;
 import libs.json.JSONException;
 import libs.json.JSONObject;
 import psdk.EventEditor.model.EventCommand;
+import static psdk.EventEditor.model.EventEditorDialog.EventCommandCodes.*;
 
 public class CommandDisplayFormatter {
 
     public String getCommandDisplayName(EventCommand command) {
         switch (command.getCode()) {
             // Basic commands
-            case 101: return formatShowText(command);
-            case 102: return formatShowChoices(command);
-            case 103: return formatInputNumber(command);
-            case 104: return formatChangeItems(command);
-            case 105: return formatChangeGold(command);
-            case 106: return formatChangeVariables(command);
-            case 107: return formatChangeSwitches(command);
-            case 108: return formatComment(command);
-            case 111: return formatConditionalBranch(command);
-            case 112: return "Loop";
-            case 113: return "Break Loop";
-            case 115: return "Exit Event Processing";
-            case 116: return "Erase Event";
-            case 123: return formatControlSelfSwitch(command);
-            case 132: return formatChangeBattleBGM(command);
+            case SHOW_TEXT: return formatShowText(command);
+            case SHOW_CHOICES: return formatShowChoices(command);
+            case INPUT_NUMBER: return formatInputNumber(command);
+            case CHANGE_ITEMS: return formatChangeItems(command);
+            case CHANGE_GOLD: return formatChangeGold(command);
+            case CHANGE_VARIABLES: return formatChangeVariables(command);
+            case CHANGE_SWITCHES: return formatChangeSwitches(command);
+            case COMMENT: return formatComment(command);
+            case CONDITIONAL_BRANCH: return formatConditionalBranch(command);
+            case LOOP: return "Loop";
+            case BREAK_LOOP: return "Break Loop";
+            case EXIT_EVENT_PROCESSING: return "Exit Event Processing";
+            case ERASE_EVENT: return "Erase Event";
+            case CONTROL_SELF_SWITCH: return formatControlSelfSwitch(command);
+            case CHANGE_BATTLE_BGM: return formatChangeBattleBGM(command);
             
             // Map and player commands
-            case 201: return formatTransferPlayer(command);
-            case 202: return formatSetEventLocation(command);
-            case 203: return formatScrollMap(command);
-            case 204: return formatChangeMapSettings(command);
-            case 209: return formatSetMovementRoute(command);
-            case 210: return "Wait for Move's Completion";
-            case 211: return "Change Tileset...";
-            case 212: return "Change Parallax...";
-            case 221: return "Wait...";
-            case 224: return formatScreenFlash(command);
-            case 225: return formatScreenShake(command);
+            case TRANSFER_PLAYER: return formatTransferPlayer(command);
+            case SET_EVENT_LOCATION: return formatSetEventLocation(command);
+            case SCROLL_MAP: return formatScrollMap(command);
+            case CHANGE_MAP_SETTINGS: return formatChangeMapSettings(command);
+            case SET_MOVEMENT_ROUTE: return formatSetMovementRoute(command);
+            case WAIT_FOR_MOVES_COMPLETION: return "Wait for Move's Completion";
+            case CHANGE_TILESET: return "Change Tileset...";
+            case CHANGE_PARALLAX: return "Change Parallax...";
+            case WAIT: return "Wait...";
+            case SCREEN_FLASH: return formatScreenFlash(command);
+            case SCREEN_SHAKE: return formatScreenShake(command);
             
             // Audio/Visual commands
-            case 230: return "Play BGM...";
-            case 231: return formatShowPicture(command);
-            case 232: return "Play ME...";
-            case 233: return "Play SE...";
-            case 234: return "Stop SE...";
-            case 235: return formatErasePicture(command);
-            case 241: return formatPlayBGM(command);
-            case 242: return formatFadeOutBGM(command);
-            case 245: return formatPlayBGS(command);
-            case 246: return formatFadeOutBGS(command);
-            case 250: return formatPlaySE(command);
-            case 251: return "Stop SE";
-            case 355: return formatScript(command);
+            case PLAY_BGM_OLD: return "Play BGM...";
+            case SHOW_PICTURE: return formatShowPicture(command);
+            case PLAY_ME: return "Play ME...";
+            case PLAY_SE_OLD: return "Play SE...";
+            case STOP_SE_OLD: return "Stop SE...";
+            case ERASE_PICTURE: return formatErasePicture(command);
+            case PLAY_BGM: return formatPlayBGM(command);
+            case FADE_OUT_BGM: return formatFadeOutBGM(command);
+            case PLAY_BGS: return formatPlayBGS(command);
+            case FADE_OUT_BGS: return formatFadeOutBGS(command);
+            case PLAY_SE: return formatPlaySE(command);
+            case STOP_SE: return "Stop SE";
+            case SCRIPT: return formatScript(command);
             
             // Continuation commands
-            case 402: return formatWhenChoice(command);
-            case 404: return "End Choice";
-            case 408: return formatCommentContinuation(command);
-            case 411: return "Else";
-            case 412: return "Branch End";
-            case 655: return formatScriptContinuation(command);
+            case WHEN_CHOICE: return formatWhenChoice(command);
+            case END_CHOICE: return "End Choice";
+            case COMMENT_CONTINUATION: return formatCommentContinuation(command);
+            case ELSE: return "Else";
+            case BRANCH_END: return "Branch End";
+            case SCRIPT_CONTINUATION: return formatScriptContinuation(command);
             
             // Movement commands
-            case 509: return formatMovementCommand(command);
+            case MOVEMENT_COMMAND: return formatMovementCommand(command);
             
-            case 0: return "End";
+            case END: return "End";
             default: return formatUnknownCommand(command);
         }
     }

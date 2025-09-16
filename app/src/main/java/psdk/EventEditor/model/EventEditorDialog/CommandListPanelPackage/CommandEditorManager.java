@@ -16,18 +16,12 @@ import psdk.EventEditor.model.EventEditorDialog.CommandEditingDialogs.CommentEdi
 import psdk.EventEditor.model.EventEditorDialog.CommandEditingDialogs.ScriptEditorDialog;
 import psdk.EventEditor.model.EventEditorDialog.CommandEditingDialogs.SetMoveRouteEditorDialog;
 import psdk.EventEditor.model.EventEditorDialog.CommandEditingDialogs.ShowTextEditorDialog;
+import static psdk.EventEditor.model.EventEditorDialog.EventCommandCodes.*;
 
 /**
  * Manages opening specific command editors and handling command modifications.
  */
 public class CommandEditorManager {
-    
-    private static final int COMMAND_SHOW_TEXT = 101;
-    private static final int COMMAND_COMMENT = 108;
-    private static final int COMMAND_SET_MOVE_ROUTE = 209;
-    private static final int COMMAND_SCRIPT = 355;
-    private static final int COMMAND_COMMENT_CONTINUED = 408;
-    private static final int COMMAND_SCRIPT_CONTINUED = 655;
     
     private final CommandListPanel panel;
 
@@ -48,18 +42,18 @@ public class CommandEditorManager {
         boolean modified = false;
 
         switch (commandToEdit.getCode()) {
-            case COMMAND_SET_MOVE_ROUTE:
+            case SET_MOVEMENT_ROUTE:
                 EventCommand commandCopy = createCommandCopy(commandToEdit);
                 modified = handleSetMoveRouteEditor(commandToEdit, commandCopy);
                 break;
-            case COMMAND_SHOW_TEXT:
+            case SHOW_TEXT:
                 EventCommand showTextCopy = createCommandCopy(commandToEdit);
                 modified = handleShowTextEditor(commandToEdit, showTextCopy);
                 break;
-            case COMMAND_COMMENT:
+            case COMMENT:
                 modified = handleCommentEditor(commandToEdit);
                 break;
-            case COMMAND_SCRIPT:
+            case SCRIPT:
                 modified = handleScriptEditor(commandToEdit);
                 break;
             default:
@@ -71,6 +65,7 @@ public class CommandEditorManager {
             notifyModification();
         }
     }
+
 
     public void openSetMoveRouteEditor(EventCommand commandToEdit) {
         if (panel.getParentDialog() == null) {
@@ -166,7 +161,7 @@ public class CommandEditorManager {
         
         // Add all following 408 commands
         int nextIndex = commentIndex + 1;
-        while (nextIndex < commands.size() && commands.get(nextIndex).getCode() == COMMAND_COMMENT_CONTINUED) {
+        while (nextIndex < commands.size() && commands.get(nextIndex).getCode() == COMMENT_CONTINUATION) {
             commentCommands.add(commands.get(nextIndex));
             nextIndex++;
         }
@@ -218,7 +213,7 @@ public class CommandEditorManager {
         
         // Add all following 655 commands
         int nextIndex = scriptIndex + 1;
-        while (nextIndex < commands.size() && commands.get(nextIndex).getCode() == COMMAND_SCRIPT_CONTINUED) {
+        while (nextIndex < commands.size() && commands.get(nextIndex).getCode() == SCRIPT_CONTINUATION) {
             scriptCommands.add(commands.get(nextIndex));
             nextIndex++;
         }
@@ -275,7 +270,7 @@ public class CommandEditorManager {
     }
 
     private boolean verifySetMoveRouteSync(List<EventCommand> commands, int setMoveRouteIndex) {
-        if (setMoveRouteIndex >= commands.size() || commands.get(setMoveRouteIndex).getCode() != COMMAND_SET_MOVE_ROUTE) {
+        if (setMoveRouteIndex >= commands.size() || commands.get(setMoveRouteIndex).getCode() != SET_MOVEMENT_ROUTE) {
             return false;
         }
         
