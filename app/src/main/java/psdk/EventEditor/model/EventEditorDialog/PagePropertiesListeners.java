@@ -2,7 +2,7 @@ package psdk.EventEditor.model.EventEditorDialog;
 
 import javax.swing.*;
 
-public class EventListenerSetup {
+public class PagePropertiesListeners {
     
     public static void setupConditionListeners(ConditionComponents components) {
         components.switchCondition.addActionListener(e -> {

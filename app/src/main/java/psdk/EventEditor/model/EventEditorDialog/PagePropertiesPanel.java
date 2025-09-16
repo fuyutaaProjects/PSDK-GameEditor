@@ -37,7 +37,7 @@ public class PagePropertiesPanel extends JPanel {
         initializePanel();
         createComponents();
         layoutComponents();
-        setupEventListeners();
+        setupPagePropertiesListeners();
     }
 
     // ========== INITIALIZATION ==========
@@ -96,19 +96,19 @@ public class PagePropertiesPanel extends JPanel {
         return panel;
     }
 
-    // ========== EVENT LISTENERS ==========
+    // ========== LISTENERS ==========
     
-    private void setupEventListeners() {
-        EventListenerSetup.setupConditionListeners(conditionComponents);
-        EventListenerSetup.setupGraphicListeners(graphicComponents, this);
-        EventListenerSetup.setupMovementListeners(movementComponents);
-        EventListenerSetup.setupOptionListeners(optionComponents, this);
+    private void setupPagePropertiesListeners() {
+        PagePropertiesListeners.setupConditionListeners(conditionComponents);
+        PagePropertiesListeners.setupGraphicListeners(graphicComponents, this);
+        PagePropertiesListeners.setupMovementListeners(movementComponents);
+        PagePropertiesListeners.setupOptionListeners(optionComponents, this);
     }
 
     // ========== PUBLIC API METHODS ==========
     
     public void updatePageProperties(EventPage page) {
-        isUpdatingFromModel = true; // Empêche les sauvegardes pendant la mise à jour
+        isUpdatingFromModel = true; // disalle saves during update
         
         try {
             if (page == null) {
@@ -122,7 +122,7 @@ public class PagePropertiesPanel extends JPanel {
                 movementComponents, optionComponents, triggerComponents);
                 
         } finally {
-            isUpdatingFromModel = false; // Réactive les sauvegardes
+            isUpdatingFromModel = false; // re-enable saves after update
         }
     }
     
