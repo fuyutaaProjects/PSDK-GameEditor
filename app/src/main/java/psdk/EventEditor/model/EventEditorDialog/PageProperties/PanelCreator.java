@@ -1,8 +1,9 @@
-package psdk.EventEditor.model.EventEditorDialog;
+package psdk.EventEditor.model.EventEditorDialog.PageProperties;
 
 import javax.swing.*;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
+
 import java.awt.*;
 
 public class PanelCreator {

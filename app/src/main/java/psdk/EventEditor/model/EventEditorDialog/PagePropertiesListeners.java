@@ -2,6 +2,11 @@ package psdk.EventEditor.model.EventEditorDialog;
 
 import javax.swing.*;
 
+import psdk.EventEditor.model.EventEditorDialog.PageProperties.ConditionComponents;
+import psdk.EventEditor.model.EventEditorDialog.PageProperties.GraphicComponents;
+import psdk.EventEditor.model.EventEditorDialog.PageProperties.MovementComponents;
+import psdk.EventEditor.model.EventEditorDialog.PageProperties.OptionComponents;
+
 public class PagePropertiesListeners {
     
     public static void setupConditionListeners(ConditionComponents components) {

@@ -11,7 +11,7 @@ import javax.swing.JList;
 
 import psdk.EventEditor.model.EventCommand;
 import psdk.EventEditor.model.EventEditorDialog.CommandDisplayFormatter;
-import psdk.EventEditor.model.EventEditorDialog.IndentCalculator;
+import psdk.EventEditor.model.EventEditorDialog.CommandListPanelPackage.IndentCalculator;
 
 public class EventCommandListCellRenderer extends DefaultListCellRenderer {
 

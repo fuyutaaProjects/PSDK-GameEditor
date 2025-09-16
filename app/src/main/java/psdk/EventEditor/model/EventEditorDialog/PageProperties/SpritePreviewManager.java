@@ -1,4 +1,4 @@
-package psdk.EventEditor.model.EventEditorDialog;
+package psdk.EventEditor.model.EventEditorDialog.PageProperties;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;

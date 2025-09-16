@@ -1,4 +1,4 @@
-package psdk.EventEditor.model.EventEditorDialog;
+package psdk.EventEditor.model.EventEditorDialog.PageProperties;
 
 import javax.swing.*;
 import libs.json.JSONObject;

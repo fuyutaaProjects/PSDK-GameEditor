@@ -1,4 +1,4 @@
-package psdk.EventEditor.model.EventEditorDialog;
+package psdk.EventEditor.model.EventEditorDialog.CommandListPanelPackage;
 
 import javax.swing.JList;
 import psdk.EventEditor.model.EventCommand;

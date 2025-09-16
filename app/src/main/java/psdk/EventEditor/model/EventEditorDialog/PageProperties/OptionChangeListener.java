@@ -1,4 +1,4 @@
-package psdk.EventEditor.model.EventEditorDialog;
+package psdk.EventEditor.model.EventEditorDialog.PageProperties;
 
 /**
  * Interface pour écouter les changements d'options

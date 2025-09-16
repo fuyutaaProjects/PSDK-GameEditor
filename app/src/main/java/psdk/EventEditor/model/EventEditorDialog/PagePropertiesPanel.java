@@ -5,6 +5,14 @@ import java.awt.*;
 import java.util.List;
 import java.util.ArrayList;
 import psdk.EventEditor.model.EventPage;
+import psdk.EventEditor.model.EventEditorDialog.PageProperties.ConditionComponents;
+import psdk.EventEditor.model.EventEditorDialog.PageProperties.GraphicComponents;
+import psdk.EventEditor.model.EventEditorDialog.PageProperties.MovementComponents;
+import psdk.EventEditor.model.EventEditorDialog.PageProperties.OptionChangeListener;
+import psdk.EventEditor.model.EventEditorDialog.PageProperties.OptionComponents;
+import psdk.EventEditor.model.EventEditorDialog.PageProperties.PagePropertiesUpdater;
+import psdk.EventEditor.model.EventEditorDialog.PageProperties.PanelCreator;
+import psdk.EventEditor.model.EventEditorDialog.PageProperties.TriggerComponents;
 
 /**
  * Version améliorée avec système de notifications pour les changements
