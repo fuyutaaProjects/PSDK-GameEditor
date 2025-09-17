@@ -596,31 +596,29 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        code: 209
-        indent: 0
         parameters:
         - 0
-        - repeat: false
+        - !ruby/object:RPG::MoveRoute
+          repeat: false
           skippable: false
           list:
-          - code: 41
+          - &1 !ruby/object:RPG::MoveCommand
+            code: 41
             parameters:
             - baptiste_1_walk
             - 0
             - 8
             - 0
-          - code: 0
+          - !ruby/object:RPG::MoveCommand
+            code: 0
             parameters: []
-      - !ruby/object:RPG::EventCommand
-        code: 509
         indent: 0
+        code: 209
+      - !ruby/object:RPG::EventCommand
         parameters:
-        - code: 41
-          parameters:
-          - baptiste_1_walk
-          - 0
-          - 8
-          - 0
+        - *1
+        indent: 0
+        code: 509
       - !ruby/object:RPG::EventCommand
         code: 0
         indent: 0
@@ -694,25 +692,26 @@ events:
         parameters:
         - carotte
       - !ruby/object:RPG::EventCommand
-        code: 209
-        indent: 0
         parameters:
         - 0
-        - repeat: false
+        - !ruby/object:RPG::MoveRoute
+          repeat: false
           skippable: false
           list:
-          - code: 45
+          - &2 !ruby/object:RPG::MoveCommand
+            code: 45
             parameters:
-            - 'emotion(:nocomment, 0, oy_offset: 10)'
-          - code: 0
+            - emotion(:nocomment, 0, oy_offset: 10)
+          - !ruby/object:RPG::MoveCommand
+            code: 0
             parameters: []
-      - !ruby/object:RPG::EventCommand
-        code: 509
         indent: 0
+        code: 209
+      - !ruby/object:RPG::EventCommand
         parameters:
-        - code: 45
-          parameters:
-          - 'emotion(:nocomment, 0, oy_offset: 10)'
+        - *2
+        indent: 0
+        code: 509
       - !ruby/object:RPG::EventCommand
         code: 355
         indent: 0

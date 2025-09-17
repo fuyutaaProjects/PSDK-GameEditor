@@ -180,16 +180,16 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
 
     yaml_lines.append("events:") 
     
+    # Dictionnaire pour stocker les références des MoveCommands
+    move_command_references = {}
+    move_command_counter = 1
+    
     for event_id in sorted(events_dict_for_yaml.keys()): 
         event_data = events_dict_for_yaml[event_id]
         yaml_lines.append(f"  {event_id}: !ruby/object:RPG::Event") 
         
         event_attrs_to_dump = {k: v for k, v in event_data.items() if k not in ['pages', 'id', 'name', 'x', 'y']} 
         
-        # Commenté pour éviter le spam de debug
-        # if not event_attrs_to_dump:
-        #     print(f"DEBUG: Event {event_id} has no filtered attributes for the main RPG::Event object.")
-
         event_attrs_yaml = yaml.dump(event_attrs_to_dump,
                                       Dumper=CustomDumper,
                                       default_flow_style=False,
@@ -262,8 +262,6 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                     else:
                         yaml_lines.append("") 
 
-            # Commenté pour éviter le spam de debug
-            # print(f"DEBUG: Page {page_index} (Event {event_id}) move_route data before processing: {page_data.get('move_route', 'NOT FOUND')}")
             if 'move_route' in page_data and page_data['move_route']:
                 yaml_lines.append(f"      move_route: !ruby/object:RPG::MoveRoute") 
                 move_route_content_yaml = yaml.dump(page_data['move_route'],
@@ -272,19 +270,17 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                                                      sort_keys=False,
                                                      indent=2,
                                                      width=float('inf')) 
-                # Commenté pour éviter le spam de debug
-                # print(f"DEBUG: Page {page_index} (Event {event_id}) move_route YAML content after dump: \n{move_route_content_yaml}")
                 for line in move_route_content_yaml.splitlines():
                     if line.strip():
                         yaml_lines.append(f"        {line}") 
                     else:
                         yaml_lines.append("") 
             
-            # SECTION CORRIGÉE : Traitement des commandes d'événement - SANS command_index
+            # SECTION CORRIGÉE : Traitement des commandes d'événement avec gestion des Set Move Route
             if commands:
                 yaml_lines.append("      list:") 
                 
-                for command in commands:
+                for cmd_index, command in enumerate(commands):
                     # Créer une copie pour éviter de modifier l'original
                     command_to_dump = command.copy()
                     
@@ -302,21 +298,90 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                     if 'indent' in command_to_dump:
                         command_to_dump['indent'] = int(command_to_dump['indent'])
                     
-                    # Ajouter le tag Ruby pour RPG::EventCommand
-                    yaml_lines.append(f"      - !ruby/object:RPG::EventCommand")
+                    # Gestion spéciale pour les commandes "Set Move Route" (code 209)
+                    if command_to_dump.get('code') == 209:
+                        yaml_lines.append(f"      - !ruby/object:RPG::EventCommand")
+                        
+                        # Les paramètres du Set Move Route
+                        params = command_to_dump.get('parameters', [])
+                        if len(params) >= 2 and isinstance(params[1], dict):
+                            move_route_data = params[1]
+                            
+                            # Écrire les paramètres
+                            yaml_lines.append(f"        parameters:")
+                            yaml_lines.append(f"        - {params[0] if len(params) > 0 else 0}")
+                            yaml_lines.append(f"        - !ruby/object:RPG::MoveRoute")
+                            
+                            # Écrire repeat et skippable
+                            yaml_lines.append(f"          repeat: {str(move_route_data.get('repeat', False)).lower()}")
+                            yaml_lines.append(f"          skippable: {str(move_route_data.get('skippable', False)).lower()}")
+                            yaml_lines.append(f"          list:")
+                            
+                            # Traiter la liste des MoveCommands
+                            move_commands = move_route_data.get('list', [])
+                            for move_cmd_index, move_cmd in enumerate(move_commands):
+                                # Pour toutes les commandes sauf la dernière, créer une référence
+                                if move_cmd_index < len(move_commands) - 1:
+                                    ref_id = move_command_counter
+                                    move_command_references[f"cmd_{cmd_index}_{move_cmd_index}"] = ref_id
+                                    yaml_lines.append(f"          - &{ref_id} !ruby/object:RPG::MoveCommand")
+                                    move_command_counter += 1
+                                else:
+                                    # Dernière commande sans référence
+                                    yaml_lines.append(f"          - !ruby/object:RPG::MoveCommand")
+                                
+                                # Écrire le code et les paramètres de la MoveCommand
+                                yaml_lines.append(f"            code: {move_cmd.get('code', 0)}")
+                                move_cmd_params = move_cmd.get('parameters', [])
+                                if move_cmd_params:
+                                    yaml_lines.append(f"            parameters:")
+                                    for param in move_cmd_params:
+                                        yaml_lines.append(f"            - {param}")
+                                else:
+                                    yaml_lines.append(f"            parameters: []")
+                        
+                        # Écrire indent et code
+                        yaml_lines.append(f"        indent: {command_to_dump.get('indent', 0)}")
+                        yaml_lines.append(f"        code: {command_to_dump.get('code')}")
                     
-                    # Générer le YAML pour cette commande
-                    cmd_attrs_yaml = yaml.dump(command_to_dump,
-                                                 Dumper=CustomDumper,
-                                                 default_flow_style=False,
-                                                 sort_keys=False,
-                                                 indent=2,
-                                                 width=float('inf')) 
+                    # Gestion spéciale pour les commandes de continuation (code 509)
+                    elif command_to_dump.get('code') == 509:
+                        yaml_lines.append(f"      - !ruby/object:RPG::EventCommand")
+                        
+                        # Chercher la référence correspondante
+                        ref_key = f"cmd_{cmd_index-1}_0"  # Généralement la première commande du move route précédent
+                        if ref_key in move_command_references:
+                            ref_id = move_command_references[ref_key]
+                            yaml_lines.append(f"        parameters:")
+                            yaml_lines.append(f"        - *{ref_id}")
+                        else:
+                            # Fallback si pas de référence trouvée
+                            yaml_lines.append(f"        parameters:")
+                            if 'parameters' in command_to_dump and command_to_dump['parameters']:
+                                for param in command_to_dump['parameters']:
+                                    yaml_lines.append(f"        - {param}")
+                            else:
+                                yaml_lines.append(f"        - []")
+                        
+                        yaml_lines.append(f"        indent: {command_to_dump.get('indent', 0)}")
+                        yaml_lines.append(f"        code: {command_to_dump.get('code')}")
                     
-                    # Ajouter chaque ligne avec l'indentation appropriée
-                    for line in cmd_attrs_yaml.splitlines():
-                        if line.strip():
-                            yaml_lines.append(f"        {line}") 
+                    # Traitement normal pour les autres commandes
+                    else:
+                        yaml_lines.append(f"      - !ruby/object:RPG::EventCommand")
+                        
+                        # Générer le YAML pour cette commande
+                        cmd_attrs_yaml = yaml.dump(command_to_dump,
+                                                     Dumper=CustomDumper,
+                                                     default_flow_style=False,
+                                                     sort_keys=False,
+                                                     indent=2,
+                                                     width=float('inf')) 
+                        
+                        # Ajouter chaque ligne avec l'indentation appropriée
+                        for line in cmd_attrs_yaml.splitlines():
+                            if line.strip():
+                                yaml_lines.append(f"        {line}") 
 
     final_yaml_string = "\n".join(yaml_lines) 
 
