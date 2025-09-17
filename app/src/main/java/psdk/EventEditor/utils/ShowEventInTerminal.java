@@ -1,9 +1,11 @@
-package psdk.EventEditor.views;
+package psdk.EventEditor.utils;
 
 import java.util.List;
 
 import psdk.EventEditor.model.Event;
 import psdk.EventEditor.model.EventPage;
+import psdk.EventEditor.views.ShowEventCommand;
+import psdk.EventEditor.views.ShowEventPage;
 
 public class ShowEventInTerminal {
     

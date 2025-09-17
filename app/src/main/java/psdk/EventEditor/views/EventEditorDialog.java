@@ -24,6 +24,7 @@ import psdk.EventEditor.model.EventPage;
 import psdk.EventEditor.model.EventEditorDialog.CommandListModificationListener;
 import psdk.EventEditor.model.EventEditorDialog.CommandListPanel;
 import psdk.EventEditor.model.EventEditorDialog.PagePropertiesPanel;
+import psdk.EventEditor.utils.ShowEventInTerminal;
 import psdk.EventEditor.ConfigManager;
 
 public class EventEditorDialog extends JDialog implements CommandListModificationListener {

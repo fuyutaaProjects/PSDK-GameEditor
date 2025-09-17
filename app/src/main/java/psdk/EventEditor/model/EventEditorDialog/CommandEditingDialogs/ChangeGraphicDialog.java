@@ -43,21 +43,22 @@ import psdk.EventEditor.utils.DialogKeyBindingUtils;
 
 public class ChangeGraphicDialog extends JDialog implements DialogKeyBindingUtils.ConfirmableDialog {
 
-    private static final int GRID_COLS = 4;      // Columns in the spritesheet (0-3 for X)
-    private static final int GRID_ROWS = 4;      // Rows in the spritesheet (0-3 for Y)
+    private static final int GRID_COLS = 4;      // Columns in the spritesheet (patterns 0-3)
+    private static final int GRID_ROWS = 4;      // Rows in the spritesheet (directions)
     
     private static final int DEFAULT_SPRITE_WIDTH = 32; 
-    private static final int DEFAULT_SPRITE_HEIGHT = 48; 
+    private static final int DEFAULT_SPRITE_HEIGHT = 32; 
 
     private JList<String> graphicFileList;
     private DefaultListModel<String> graphicFileListModel;
     private JPanel previewPanel; 
-    private JSpinner colSpinner; // Represents the actual x-coordinate (0-3) for UI display
-    private JSpinner rowSpinner; // Represents the actual y-coordinate (0-3) for UI display
+    private JSpinner patternSpinner; // Pattern (0-3) - column in spritesheet
+    private JSpinner directionSpinner; // Direction value (2,4,6,8) for UI display
 
     private String selectedGraphicName;
-    private int selectedCol;
-    private int selectedRow;
+    private int selectedPattern; // Pattern 0-3
+    private int selectedDirection; // Direction 2,4,6,8
+    private int characterIndex = 0; // Character Index (not used for single character spritesheets)
     private int hueValue = 0; // This tool doesn't allow hue changes.
 
     private boolean okPressed = false;
@@ -67,11 +68,11 @@ public class ChangeGraphicDialog extends JDialog implements DialogKeyBindingUtil
      * Constructor for the Change Graphic dialog.
      * @param owner The parent Dialog for modality.
      * @param initialGraphicName The initial graphic file name (e.g., "amanda_walk").
-     * @param initialEncodedX The initial X-coordinate from RPG Maker's encoded format (e.g., 2, 4, 6, 8).
-     * @param initialY The initial Y-coordinate from RPG Maker's direct format (e.g., 0, 1, 2, 3).
-     * @param initialHue The initial Hue value (ignored, forced to 0).
+     * @param initialCharacterIndex The character index (usually 0 for single character sheets).
+     * @param initialDirection The initial Direction value (2=Down, 4=Left, 6=Right, 8=Up).
+     * @param initialPattern The initial Pattern value (0-3).
      */
-    public ChangeGraphicDialog(Dialog owner, String initialGraphicName, int initialEncodedX, int initialY, int initialHue) {
+    public ChangeGraphicDialog(Dialog owner, String initialGraphicName, int initialCharacterIndex, int initialDirection, int initialPattern) {
         super(owner, "Change Graphic", true);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setSize(700, 550);
@@ -80,37 +81,72 @@ public class ChangeGraphicDialog extends JDialog implements DialogKeyBindingUtil
 
         System.out.println("\nDEBUG: Constructor called with:");
         System.out.println("  initialGraphicName: " + initialGraphicName);
-        System.out.println("  initialEncodedX (from RMXP JSON): " + initialEncodedX);
-        System.out.println("  initialY (from RMXP JSON): " + initialY);
-        System.out.println("  initialHue: " + initialHue);
+        System.out.println("  initialCharacterIndex: " + initialCharacterIndex);
+        System.out.println("  initialDirection: " + initialDirection);
+        System.out.println("  initialPattern: " + initialPattern);
 
         this.selectedGraphicName = initialGraphicName;
-        
-        // DECODE initialEncodedX to get the actual column (x) (0-3) for our UI
-        // From RPG Maker: encodedX = 2 * x + 2  =>  x = (encodedX - 2) / 2
-        this.selectedCol = (initialEncodedX - 2) / 2;
-        // initialY is already the correct row (y) (0-3) for our UI
-        this.selectedRow = initialY;
-
-        System.out.println("DEBUG: Decoded coordinates for UI (selectedCol, selectedRow):");
-        System.out.println("  selectedCol (actual X for display): " + selectedCol);
-        System.out.println("  selectedRow (actual Y for display): " + selectedRow);
-
-        // Ensure decoded col/row are within bounds (0 to GRID_COLS-1 / GRID_ROWS-1)
-        this.selectedCol = Math.max(0, Math.min(selectedCol, GRID_COLS - 1));
-        this.selectedRow = Math.max(0, Math.min(selectedRow, GRID_ROWS - 1));
-        
-        System.out.println("DEBUG: Clamped coordinates for UI (after bounds check):");
-        System.out.println("  selectedCol (clamped): " + selectedCol);
-        System.out.println("  selectedRow (clamped): " + selectedRow);
-
+        this.characterIndex = initialCharacterIndex;
+        this.selectedDirection = initialDirection;
+        this.selectedPattern = initialPattern;
         this.hueValue = 0; // Always force to 0, the tool doesn't support hue value changes.
+
+        // Ensure values are within bounds
+        this.selectedPattern = Math.max(0, Math.min(selectedPattern, GRID_COLS - 1));
+        this.selectedDirection = validateDirection(selectedDirection);
+        
+        System.out.println("DEBUG: Final values after validation:");
+        System.out.println("  selectedPattern: " + selectedPattern);
+        System.out.println("  selectedDirection: " + selectedDirection);
+        System.out.println("  characterIndex: " + characterIndex);
 
         initComponents();
         loadGraphicFiles();
         selectInitialGraphic();
         updatePreview();
         setupKeyBindings(); 
+    }
+
+    /**
+     * Validates and corrects direction values
+     */
+    private int validateDirection(int direction) {
+        switch (direction) {
+            case 2:
+            case 4:
+            case 6:
+            case 8:
+                return direction;
+            default:
+                System.out.println("DEBUG: Invalid direction " + direction + ", defaulting to 2 (Down)");
+                return 2; // Default to Down
+        }
+    }
+
+    /**
+     * Converts direction value to row index for spritesheet display
+     */
+    private int directionToRow(int direction) {
+        switch (direction) {
+            case 2: return 0; // Down
+            case 4: return 1; // Left  
+            case 6: return 2; // Right
+            case 8: return 3; // Up
+            default: return 0; // Default to Down
+        }
+    }
+
+    /**
+     * Converts row index back to direction value
+     */
+    private int rowToDirection(int row) {
+        switch (row) {
+            case 0: return 2; // Down
+            case 1: return 4; // Left
+            case 2: return 6; // Right
+            case 3: return 8; // Up
+            default: return 2; // Default to Down
+        }
     }
 
     private void setupKeyBindings() {
@@ -144,11 +180,11 @@ public class ChangeGraphicDialog extends JDialog implements DialogKeyBindingUtil
                 if (!newSelection.equals(selectedGraphicName)) {
                     selectedGraphicName = newSelection;
 
-                    selectedCol = 0;
-                    selectedRow = 0;
-                    colSpinner.setValue(selectedCol);
-                    rowSpinner.setValue(selectedRow);
-                    System.out.println("DEBUG: Graphic file changed to " + selectedGraphicName + ", resetting UI selection to (0,0).");
+                    selectedPattern = 0;
+                    selectedDirection = 2; // Default to Down
+                    patternSpinner.setValue(selectedPattern);
+                    directionSpinner.setValue(selectedDirection);
+                    System.out.println("DEBUG: Graphic file changed to " + selectedGraphicName + ", resetting to Pattern=0, Direction=2 (Down).");
                     updatePreview();
                 }
             }
@@ -209,11 +245,12 @@ public class ChangeGraphicDialog extends JDialog implements DialogKeyBindingUtil
                         g2d.setColor(Color.RED);
                         g2d.setStroke(new BasicStroke(2));
 
-                        g2d.drawRect(xOffset + selectedCol * spriteDisplayWidth, 
-                                     yOffset + selectedRow * spriteDisplayHeight,
+                        int displayRow = directionToRow(selectedDirection);
+                        g2d.drawRect(xOffset + selectedPattern * spriteDisplayWidth, 
+                                     yOffset + displayRow * spriteDisplayHeight,
                                      spriteDisplayWidth, spriteDisplayHeight);
                         g2d.dispose();
-                        System.out.println("DEBUG: Drawing selection rectangle at UI coords: (" + selectedCol + "," + selectedRow + ")");
+                        System.out.println("DEBUG: Drawing selection rectangle at Pattern=" + selectedPattern + ", Direction=" + selectedDirection + " (row " + displayRow + ")");
                     }
                 } else {
                     String message = "No Graphic Selected or Error Loading Image";
@@ -255,48 +292,78 @@ public class ChangeGraphicDialog extends JDialog implements DialogKeyBindingUtil
                     int spriteDisplayWidth = imgWidth / GRID_COLS;
                     int spriteDisplayHeight = imgHeight / GRID_ROWS;
 
-                    // Calculate the clicked column and row (0-3)
-                    int clickedCol = (e.getX() - xOffset) / spriteDisplayWidth;
+                    // Calculate the clicked pattern (column) and row
+                    int clickedPattern = (e.getX() - xOffset) / spriteDisplayWidth;
                     int clickedRow = (e.getY() - yOffset) / spriteDisplayHeight;
 
-                    // Ensure values are within bounds (0-3)
-                    clickedCol = Math.max(0, Math.min(clickedCol, GRID_COLS - 1));
+                    // Ensure values are within bounds
+                    clickedPattern = Math.max(0, Math.min(clickedPattern, GRID_COLS - 1));
                     clickedRow = Math.max(0, Math.min(clickedRow, GRID_ROWS - 1));
 
+                    // Convert row back to direction
+                    int clickedDirection = rowToDirection(clickedRow);
+
                     // Update selected values and spinners if they changed
-                    if (selectedCol != clickedCol || selectedRow != clickedRow) {
-                        selectedCol = clickedCol;
-                        selectedRow = clickedRow;
-                        colSpinner.setValue(selectedCol);
-                        rowSpinner.setValue(selectedRow);
-                        System.out.println("DEBUG: Mouse clicked, new UI selection: (" + selectedCol + "," + selectedRow + ")");
+                    if (selectedPattern != clickedPattern || selectedDirection != clickedDirection) {
+                        selectedPattern = clickedPattern;
+                        selectedDirection = clickedDirection;
+                        patternSpinner.setValue(selectedPattern);
+                        directionSpinner.setValue(selectedDirection);
+                        System.out.println("DEBUG: Mouse clicked, new selection: Pattern=" + selectedPattern + ", Direction=" + selectedDirection);
                         previewPanel.repaint();
                     }
                 }
             }
         });
 
-
         centerPanel.add(previewPanel, BorderLayout.CENTER);
 
         JPanel spinnerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 5));
-        spinnerPanel.add(new JLabel("Column (0-3):"));
-        colSpinner = new JSpinner(new SpinnerNumberModel(selectedCol, 0, GRID_COLS - 1, 1));
-        colSpinner.addChangeListener(e -> {
-            selectedCol = (int) colSpinner.getValue();
-            System.out.println("DEBUG: Spinner Col changed to: " + selectedCol);
+        spinnerPanel.add(new JLabel("Pattern (0-3):"));
+        patternSpinner = new JSpinner(new SpinnerNumberModel(selectedPattern, 0, GRID_COLS - 1, 1));
+        patternSpinner.addChangeListener(e -> {
+            selectedPattern = (int) patternSpinner.getValue();
+            System.out.println("DEBUG: Pattern spinner changed to: " + selectedPattern);
             previewPanel.repaint();
         });
-        spinnerPanel.add(colSpinner);
+        spinnerPanel.add(patternSpinner);
 
-        spinnerPanel.add(new JLabel("Row (0-3):"));
-        rowSpinner = new JSpinner(new SpinnerNumberModel(selectedRow, 0, GRID_ROWS - 1, 1));
-        rowSpinner.addChangeListener(e -> {
-            selectedRow = (int) rowSpinner.getValue();
-            System.out.println("DEBUG: Spinner Row changed to: " + selectedRow);
+        spinnerPanel.add(new JLabel("Direction:"));
+        directionSpinner = new JSpinner(new SpinnerNumberModel(selectedDirection, 2, 8, 2));
+        // Custom spinner model to only allow 2, 4, 6, 8
+        directionSpinner.setModel(new SpinnerNumberModel(selectedDirection, 2, 8, 2) {
+            @Override
+            public Object getNextValue() {
+                int current = ((Number) getValue()).intValue();
+                switch (current) {
+                    case 2: return 4;
+                    case 4: return 6;
+                    case 6: return 8;
+                    case 8: return 2;
+                    default: return 2;
+                }
+            }
+            
+            @Override
+            public Object getPreviousValue() {
+                int current = ((Number) getValue()).intValue();
+                switch (current) {
+                    case 2: return 8;
+                    case 4: return 2;
+                    case 6: return 4;
+                    case 8: return 6;
+                    default: return 2;
+                }
+            }
+        });
+        
+        directionSpinner.addChangeListener(e -> {
+            selectedDirection = (int) directionSpinner.getValue();
+            selectedDirection = validateDirection(selectedDirection);
+            System.out.println("DEBUG: Direction spinner changed to: " + selectedDirection);
             previewPanel.repaint();
         });
-        spinnerPanel.add(rowSpinner);
+        spinnerPanel.add(directionSpinner);
 
         centerPanel.add(spinnerPanel, BorderLayout.SOUTH);
         mainPanel.add(centerPanel, BorderLayout.CENTER);
@@ -378,9 +445,9 @@ public class ChangeGraphicDialog extends JDialog implements DialogKeyBindingUtil
             System.out.println("DEBUG: Initial graphic name was null/empty, selecting (None).");
         }
         // Ensure spinners reflect the loaded or default values
-        colSpinner.setValue(selectedCol);
-        rowSpinner.setValue(selectedRow);
-        System.out.println("DEBUG: Spinners set to initial UI coords: (" + selectedCol + "," + selectedRow + ")");
+        patternSpinner.setValue(selectedPattern);
+        directionSpinner.setValue(selectedDirection);
+        System.out.println("DEBUG: Spinners set to initial values: Pattern=" + selectedPattern + ", Direction=" + selectedDirection);
     }
 
     private BufferedImage loadImage(String graphicName) {
@@ -409,12 +476,12 @@ public class ChangeGraphicDialog extends JDialog implements DialogKeyBindingUtil
     private void updatePreview() {
         currentFullSpritesheet = loadImage(selectedGraphicName);
         if (currentFullSpritesheet != null) {
-            colSpinner.setEnabled(true);
-            rowSpinner.setEnabled(true);
+            patternSpinner.setEnabled(true);
+            directionSpinner.setEnabled(true);
             System.out.println("DEBUG: Spritesheet loaded, spinners enabled.");
         } else {
-            colSpinner.setEnabled(false);
-            rowSpinner.setEnabled(false);
+            patternSpinner.setEnabled(false);
+            directionSpinner.setEnabled(false);
             System.out.println("DEBUG: No spritesheet, spinners disabled.");
         }
         previewPanel.revalidate();
@@ -425,14 +492,14 @@ public class ChangeGraphicDialog extends JDialog implements DialogKeyBindingUtil
         // Handle (None) selection explicitly
         if ("(None)".equals(graphicFileList.getSelectedValue())) {
             selectedGraphicName = "";
-            selectedCol = 0;
-            selectedRow = 0;
-            System.out.println("DEBUG: OK Pressed - Selected (None). Storing as empty string, coords (0,0).");
+            selectedPattern = 0;
+            selectedDirection = 2;
+            System.out.println("DEBUG: OK Pressed - Selected (None). Storing as empty string, Pattern=0, Direction=2.");
         } else {
             selectedGraphicName = graphicFileList.getSelectedValue();
-            // selectedCol and selectedRow are already updated by spinner listeners or mouse click
+            // selectedPattern and selectedDirection are already updated by spinner listeners or mouse click
             System.out.println("DEBUG: OK Pressed - Selected Graphic: " + selectedGraphicName + 
-                               ", UI Coords: (" + selectedCol + "," + selectedRow + ")");
+                               ", Pattern: " + selectedPattern + ", Direction: " + selectedDirection);
         }
         okPressed = true;
         dispose();
@@ -454,25 +521,26 @@ public class ChangeGraphicDialog extends JDialog implements DialogKeyBindingUtil
     }
 
     /**
-     * Returns the selected column (x) in RPG Maker's encoded format.
-     * Use this when saving to RPG Maker's event data.
-     * @return The selected column (x) in RPG Maker's encoded format (2 * x + 2).
+     * Returns the character index (usually 0 for single character spritesheets)
      */
-    public int getSelectedColForRpgMaker() {
-        // Encode the actual column (selectedCol, which is 0-3) back to RPG Maker's format
-        int encodedCol = (selectedCol * 2) + 2;
-        System.out.println("DEBUG: getSelectedColForRpgMaker() called. UI Col: " + selectedCol + " -> RMXP EncodedX: " + encodedCol);
-        return encodedCol;
+    public int getCharacterIndex() {
+        return characterIndex;
     }
 
     /**
-     * Returns the selected row (y) directly, as RPG Maker stores it as is.
-     * Use this when saving to RPG Maker's event data.
-     * @return The selected row (y).
+     * Returns the selected direction value (2, 4, 6, 8)
      */
-    public int getSelectedRow() {
-        System.out.println("DEBUG: getSelectedRow() called. UI Row: " + selectedRow);
-        return selectedRow;
+    public int getSelectedDirection() {
+        System.out.println("DEBUG: getSelectedDirection() called. Direction: " + selectedDirection);
+        return selectedDirection;
+    }
+
+    /**
+     * Returns the selected pattern (0-3)
+     */
+    public int getSelectedPattern() {
+        System.out.println("DEBUG: getSelectedPattern() called. Pattern: " + selectedPattern);
+        return selectedPattern;
     }
 
     public int getHueValue() {

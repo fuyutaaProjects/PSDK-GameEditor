@@ -341,25 +341,21 @@ public class SetMoveRouteEditorDialog extends JDialog implements
     @Override
     public void openGraphicDialog(int moveCode, String commandName) {
         String defaultGraphicName = "";
-        int defaultCol = 0;
-        int defaultRow = 0;
-        int defaultHue = 0;
 
-        ChangeGraphicDialog graphicDialog = new ChangeGraphicDialog(this, defaultGraphicName, 
-            (defaultCol * 2) + 2, defaultRow, defaultHue);
+        ChangeGraphicDialog graphicDialog = new ChangeGraphicDialog(this, defaultGraphicName, 0, 2, 0); // characterIndex=0, direction=2 (Down), pattern=0
         graphicDialog.setVisible(true);
 
         if (graphicDialog.isOkPressed()) {
             String newGraphicName = graphicDialog.getSelectedGraphicName();
-            int newEncodedX = graphicDialog.getSelectedColForRpgMaker();
-            int newRow = graphicDialog.getSelectedRow();
-            int newHue = graphicDialog.getHueValue();
+            int newCharacterIndex = graphicDialog.getCharacterIndex();
+            int newDirection = graphicDialog.getSelectedDirection();
+            int newPattern = graphicDialog.getSelectedPattern();
 
             JSONArray newParams = new JSONArray();
             newParams.put(newGraphicName);
-            newParams.put(newHue);
-            newParams.put(newEncodedX);
-            newParams.put(newRow);
+            newParams.put(0);
+            newParams.put(newDirection);
+            newParams.put(newPattern);
 
             insertCommandInternal(moveCode, commandName, newParams);
         }
@@ -496,15 +492,16 @@ public class SetMoveRouteEditorDialog extends JDialog implements
 
         if (graphicDialog.isOkPressed()) {
             String newGraphicName = graphicDialog.getSelectedGraphicName();
-            int newEncodedX = graphicDialog.getSelectedColForRpgMaker();
-            int newRow = graphicDialog.getSelectedRow();
+            int newCharacterIndex = graphicDialog.getCharacterIndex();
+            int newDirection = graphicDialog.getSelectedDirection();
+            int newPattern = graphicDialog.getSelectedPattern();
             int newHue = graphicDialog.getHueValue();
             
             JSONArray newParams = new JSONArray();
             newParams.put(newGraphicName);
             newParams.put(newHue);
-            newParams.put(newEncodedX);
-            newParams.put(newRow);
+            newParams.put(newDirection);
+            newParams.put(newPattern);
 
             if (!newParams.toString().equals(params.toString())) {
                 innerMoveCmdJson.put("parameters", newParams);
