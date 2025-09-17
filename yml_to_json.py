@@ -119,7 +119,6 @@ def parse_rpg_map_yaml(file_path):
             commands = []
             for cmd in page_data.get('list', []):
                 command_info = {
-                    "command_index": cmd.get('command_index', 0),
                     "code": cmd.get('code', 0),
                     "indent": cmd.get('indent', 0),
                     "parameters": []

@@ -186,8 +186,9 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
         
         event_attrs_to_dump = {k: v for k, v in event_data.items() if k not in ['pages', 'id', 'name', 'x', 'y']} 
         
-        if not event_attrs_to_dump:
-            print(f"DEBUG: Event {event_id} has no filtered attributes for the main RPG::Event object.")
+        # Commenté pour éviter le spam de debug
+        # if not event_attrs_to_dump:
+        #     print(f"DEBUG: Event {event_id} has no filtered attributes for the main RPG::Event object.")
 
         event_attrs_yaml = yaml.dump(event_attrs_to_dump,
                                       Dumper=CustomDumper,
@@ -261,7 +262,8 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                     else:
                         yaml_lines.append("") 
 
-            print(f"DEBUG: Page {page_index} (Event {event_id}) move_route data before processing: {page_data.get('move_route', 'NOT FOUND')}")
+            # Commenté pour éviter le spam de debug
+            # print(f"DEBUG: Page {page_index} (Event {event_id}) move_route data before processing: {page_data.get('move_route', 'NOT FOUND')}")
             if 'move_route' in page_data and page_data['move_route']:
                 yaml_lines.append(f"      move_route: !ruby/object:RPG::MoveRoute") 
                 move_route_content_yaml = yaml.dump(page_data['move_route'],
@@ -270,14 +272,15 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                                                      sort_keys=False,
                                                      indent=2,
                                                      width=float('inf')) 
-                print(f"DEBUG: Page {page_index} (Event {event_id}) move_route YAML content after dump: \n{move_route_content_yaml}")
+                # Commenté pour éviter le spam de debug
+                # print(f"DEBUG: Page {page_index} (Event {event_id}) move_route YAML content after dump: \n{move_route_content_yaml}")
                 for line in move_route_content_yaml.splitlines():
                     if line.strip():
                         yaml_lines.append(f"        {line}") 
                     else:
                         yaml_lines.append("") 
             
-            # SECTION CORRIGÉE : Traitement des commandes d'événement
+            # SECTION CORRIGÉE : Traitement des commandes d'événement - SANS command_index
             if commands:
                 yaml_lines.append("      list:") 
                 
@@ -301,10 +304,6 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                     
                     # Ajouter le tag Ruby pour RPG::EventCommand
                     yaml_lines.append(f"      - !ruby/object:RPG::EventCommand")
-                    
-                    # Ajouter command_index s'il n'existe pas (valeur par défaut 0)
-                    if 'command_index' not in command_to_dump:
-                        command_to_dump['command_index'] = 0
                     
                     # Générer le YAML pour cette commande
                     cmd_attrs_yaml = yaml.dump(command_to_dump,

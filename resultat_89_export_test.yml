@@ -363,7 +363,6 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 0
         indent: 0
         parameters: []
@@ -409,7 +408,6 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 0
         indent: 0
         parameters: []
@@ -455,7 +453,6 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 0
         indent: 0
         parameters: []
@@ -501,7 +498,6 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 0
         indent: 0
         parameters: []
@@ -547,7 +543,6 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 0
         indent: 0
         parameters: []
@@ -601,7 +596,6 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 209
         indent: 0
         parameters:
@@ -618,7 +612,6 @@ events:
           - code: 0
             parameters: []
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 509
         indent: 0
         parameters:
@@ -629,7 +622,6 @@ events:
           - 8
           - 0
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 0
         indent: 0
         parameters: []
@@ -675,19 +667,16 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 108
         indent: 0
         parameters:
         - 'NPC Event: Camera Scroll, dialogue, '
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 408
         indent: 0
         parameters:
         - delete_event_forever
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 203
         indent: 0
         parameters:
@@ -695,19 +684,16 @@ events:
         - 7
         - 4
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 106
         indent: 0
         parameters:
         - 20
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 101
         indent: 0
         parameters:
         - carotte
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 209
         indent: 0
         parameters:
@@ -721,7 +707,6 @@ events:
           - code: 0
             parameters: []
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 509
         indent: 0
         parameters:
@@ -729,25 +714,21 @@ events:
           parameters:
           - 'emotion(:nocomment, 0, oy_offset: 10)'
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 355
         indent: 0
         parameters:
         - get_character(-1).turn_toward_character(ge(9))
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 355
         indent: 0
         parameters:
         - start_trainer_battle(306)
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 655
         indent: 0
         parameters:
         - $game_temp.battle_can_lose = true
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 231
         indent: 0
         parameters:
@@ -762,69 +743,57 @@ events:
         - 255
         - 0
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 111
         indent: 0
         parameters:
         - 12
         - detect_player_rect(2,3)
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 0
         indent: 1
         parameters: []
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 412
         indent: 0
         parameters: []
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 111
         indent: 0
         parameters:
         - 12
         - $game_player.x == 13
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 101
         indent: 1
         parameters:
         - Le .x du joueur est bien 13.
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 0
         indent: 1
         parameters: []
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 411
         indent: 0
         parameters: []
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 101
         indent: 1
         parameters:
         - Le .x du joueur n'est pas 13.
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 0
         indent: 1
         parameters: []
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 412
         indent: 0
         parameters: []
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 108
         indent: 0
         parameters:
         - '--------Check variable value------'
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 102
         indent: 0
         parameters:
@@ -832,47 +801,39 @@ events:
           - 'No'
         - 2
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 402
         indent: 0
         parameters:
         - 0
         - 'Yes'
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 101
         indent: 1
         parameters:
         - carrote 2 dans choix
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 0
         indent: 1
         parameters: []
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 402
         indent: 0
         parameters:
         - 1
         - 'No'
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 0
         indent: 1
         parameters: []
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 404
         indent: 0
         parameters: []
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 116
         indent: 0
         parameters: []
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 132
         indent: 0
         parameters:
@@ -880,7 +841,6 @@ events:
           name: pkmrb-battle1
           pitch: 100
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 204
         indent: 0
         parameters:
@@ -893,7 +853,6 @@ events:
         - 0
         - 0
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 224
         indent: 0
         parameters:
@@ -903,7 +862,6 @@ events:
           alpha: 255
         - 10
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 225
         indent: 0
         parameters:
@@ -911,7 +869,6 @@ events:
         - 5
         - 5
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 231
         indent: 0
         parameters:
@@ -926,7 +883,6 @@ events:
         - 255
         - 0
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 241
         indent: 0
         parameters:
@@ -934,13 +890,11 @@ events:
           name: battle1
           pitch: 100
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 242
         indent: 0
         parameters:
         - 10
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 203
         indent: 0
         parameters:
@@ -948,7 +902,6 @@ events:
         - 1
         - 4
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 202
         indent: 0
         parameters:
@@ -958,7 +911,6 @@ events:
         - 2
         - 0
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 201
         indent: 0
         parameters:
@@ -969,7 +921,6 @@ events:
         - 0
         - 0
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 245
         indent: 0
         parameters:
@@ -977,13 +928,11 @@ events:
           name: 002-wind02
           pitch: 100
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 246
         indent: 0
         parameters:
         - 10
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 250
         indent: 0
         parameters:
@@ -991,12 +940,10 @@ events:
           name: 020-teleport03
           pitch: 100
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 251
         indent: 0
         parameters: []
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 0
         indent: 0
         parameters: []
@@ -1036,37 +983,31 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 108
         indent: 0
         parameters:
         - SPECIFIC WILD POKEMON ENCOUNTER
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 108
         indent: 0
         parameters:
         - 'Exemple: les echancarbons dans la grotte aquatique,'
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 408
         indent: 0
         parameters:
         - au passage avec Port Avalon.
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 101
         indent: 0
         parameters:
         - '!!!'
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 355
         indent: 0
         parameters:
         - call_battle_wild(:grimer, 6)
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 111
         indent: 0
         parameters:
@@ -1074,13 +1015,11 @@ events:
         - 37
         - 0
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 355
         indent: 1
         parameters:
         - $game_map.autoplay
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 121
         indent: 1
         parameters:
@@ -1088,17 +1027,14 @@ events:
         - 130
         - 1
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 0
         indent: 1
         parameters: []
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 412
         indent: 0
         parameters: []
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 0
         indent: 0
         parameters: []
@@ -1144,7 +1080,6 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 0
         indent: 0
         parameters: []
@@ -1190,7 +1125,6 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 0
         indent: 0
         parameters: []
@@ -1236,7 +1170,6 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 0
         indent: 0
         parameters: []
@@ -1282,7 +1215,6 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 0
         indent: 0
         parameters: []
@@ -1328,7 +1260,6 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        command_index: 0
         code: 0
         indent: 0
         parameters: []
