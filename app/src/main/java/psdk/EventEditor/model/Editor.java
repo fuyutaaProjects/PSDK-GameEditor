@@ -184,4 +184,50 @@ public class Editor {
         }
         
     }
+
+
+    public boolean exportMapDataToYml(int mapId, JSONObject mapDataJson) {
+        String tempJsonFilePath = rpgMakerProjectRootPath + File.separator + "temp_map_data_to_export.json";
+        
+        String exportYmlFilePath = rpgMakerProjectRootPath + File.separator + "Data" + File.separator + mapId + "_export_test.yml"; 
+
+        String pathToPythonScript = "json_to_yml.py"; 
+
+        try {
+            // Écrire le JSON temporaire
+            try (FileWriter file = new FileWriter(tempJsonFilePath)) {
+                file.write(mapDataJson.toString(2));
+                System.out.println("Map data temporarily saved for export to: " + tempJsonFilePath);
+            } catch (IOException e) {
+                System.err.println("Error saving temporary JSON file for export: " + e.getMessage());
+                return false;
+            }
+
+            // Exécuter le script Python pour convertir JSON vers YAML
+            ProcessBuilder pb = new ProcessBuilder("python", pathToPythonScript, tempJsonFilePath, exportYmlFilePath);
+            pb.inheritIO();
+            Process p = pb.start();
+            int exitCode = p.waitFor();
+
+            if (exitCode == 0) {
+                System.out.println("Successfully exported JSON to YAML: " + exportYmlFilePath);
+                return true;
+            } else {
+                System.err.println("Python script exited with error code during export: " + exitCode);
+                return false;
+            }
+
+        } catch (IOException | InterruptedException e) {
+            System.err.println("Error executing Python script for export: " + e.getMessage());
+            return false;
+        } finally {
+            // Nettoyer le fichier temporaire
+            try {
+                Files.deleteIfExists(new File(tempJsonFilePath).toPath());
+                System.out.println("Temporary JSON file for export deleted: " + tempJsonFilePath);
+            } catch (IOException e) {
+                System.err.println("Error deleting temporary JSON file for export: " + e.getMessage());
+            }
+        }
+    }
 }

@@ -70,6 +70,26 @@ public class TileGridToolbar extends JToolBar {
         });
         add(saveToYmlButton);
 
+        JButton exportToYmlButton = createStyledButton("Export Map Test");
+        exportToYmlButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (editor != null && currentMapDataJson != null && currentMapId != 0) {
+                    boolean success = editor.exportMapDataToYml(currentMapId, currentMapDataJson);
+                    if (success) {
+                        showStyledDialog("Map exported to " + currentMapId + "_export_test.yml successfully!", "Export Success", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        showStyledDialog("Failed to export map to YAML. Check console for details.", "Export Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                } else {
+                    showStyledDialog(
+                        "Map data or Editor instance not available. Make sure a map is loaded and its data is passed to the toolbar.", 
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+        add(exportToYmlButton);
+
         JButton toggleGridButton = createStyledButton("Toggle Grid");
         toggleGridButton.addActionListener(e -> {
             if (this.gridVisualizer != null) {
