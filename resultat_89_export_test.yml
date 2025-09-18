@@ -368,7 +368,7 @@ events:
         code: 0
   2: !ruby/object:RPG::Event
     id: 2
-    name: !!! what
+    name: "!!! what"
     x: 2
     y: 2
     pages:

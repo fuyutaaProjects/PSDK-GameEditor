@@ -18,6 +18,40 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
         else:
             return param_item
 
+    def format_yaml_string(param):
+        """
+        Formate une chaîne pour éviter les problèmes d'interprétation YAML
+        """
+        if not isinstance(param, str):
+            return param
+            
+        # Caractères spéciaux nécessitant des guillemets doubles au début
+        special_chars_start = ['!', '@', '#', '%', '^', '&', '*', '(', ')', '-', '+', '=', '{', '}', '[', ']', '|', '\\', ':', ';', '"', "'", '<', '>', ',', '.', '?', '/', '~', '`', '$', '§']
+        
+        # Guillemets doubles pour caractères spéciaux au début
+        needs_double_quotes = any(param.startswith(char) for char in special_chars_start)
+        
+        # Guillemets simples pour éviter interprétation comme clé YAML
+        needs_single_quotes = (
+            not needs_double_quotes and  # Priorité aux guillemets doubles
+            ':' in param and (
+                param.endswith(':') or           # se termine par :
+                ': ' in param or                 # contient ': ' (clé: valeur)
+                param.startswith(':')            # commence par :
+            )
+        )
+        
+        if needs_double_quotes:
+            # Échapper les guillemets doubles s'il y en a
+            escaped_param = param.replace('"', '\\"')
+            return f'"{escaped_param}"'
+        elif needs_single_quotes:
+            # Échapper les guillemets simples s'il y en a
+            escaped_param = param.replace("'", "''")
+            return f"'{escaped_param}'"
+        else:
+            return param
+
     class CustomDumper(yaml.SafeDumper):
         def represent_tag(self, tag, data, flow_style=None):
             if isinstance(data, dict):
@@ -206,7 +240,10 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                     yaml_lines.append(f"    {line}") 
 
         yaml_lines.append(f"    id: {event_data.get('id', 0)}")
-        yaml_lines.append(f"    name: {event_data.get('name', '')}")
+        # CORRECTION: Application du formatage au champ name
+        event_name = event_data.get('name', '')
+        formatted_name = format_yaml_string(event_name)
+        yaml_lines.append(f"    name: {formatted_name}")
         yaml_lines.append(f"    x: {event_data.get('x', 0)}")
         yaml_lines.append(f"    y: {event_data.get('y', 0)}")
 
@@ -389,31 +426,9 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                                         yaml_lines.append(f"          volume: {param['volume']}")
                                         yaml_lines.append(f"          pitch: {param['pitch']}")
                                     elif isinstance(param, str):
-                                        # Caractères spéciaux nécessitant des guillemets doubles au début
-                                        special_chars_start = ['!', '@', '#', '%', '^', '&', '*', '(', ')', '-', '+', '=', '{', '}', '[', ']', '|', '\\', ':', ';', '"', "'", '<', '>', ',', '.', '?', '/', '~', '`', '$', '§']                                        
-                                        # Guillemets doubles pour caractères spéciaux au début
-                                        needs_double_quotes = any(param.startswith(char) for char in special_chars_start)
-                                        
-                                        # Guillemets simples pour éviter interprétation comme clé YAML
-                                        needs_single_quotes = (
-                                            not needs_double_quotes and  # Priorité aux guillemets doubles
-                                            ':' in param and (
-                                                param.endswith(':') or           # se termine par :
-                                                ': ' in param or                 # contient ': ' (clé: valeur)
-                                                param.startswith(':')            # commence par :
-                                            )
-                                        )
-                                        
-                                        if needs_double_quotes:
-                                            # Échapper les guillemets doubles s'il y en a
-                                            escaped_param = param.replace('"', '\\"')
-                                            yaml_lines.append(f'        - "{escaped_param}"')
-                                        elif needs_single_quotes:
-                                            # Échapper les guillemets simples s'il y en a
-                                            escaped_param = param.replace("'", "''")
-                                            yaml_lines.append(f"        - '{escaped_param}'")
-                                        else:
-                                            yaml_lines.append(f"        - {param}")
+                                        # CORRECTION: Utilisation de la fonction format_yaml_string
+                                        formatted_param = format_yaml_string(param)
+                                        yaml_lines.append(f"        - {formatted_param}")
                                     else:
                                         yaml_lines.append(f"        - {param}")
                             else:
