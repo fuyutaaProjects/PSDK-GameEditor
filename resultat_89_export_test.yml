@@ -360,7 +360,8 @@ events:
         repeat: true
         skippable: false
         list:
-        - code: 0
+        - !ruby/object:RPG::MoveCommand
+          code: 0
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
@@ -405,7 +406,8 @@ events:
         repeat: true
         skippable: false
         list:
-        - code: 0
+        - !ruby/object:RPG::MoveCommand
+          code: 0
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
@@ -450,7 +452,8 @@ events:
         repeat: true
         skippable: false
         list:
-        - code: 0
+        - !ruby/object:RPG::MoveCommand
+          code: 0
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
@@ -495,7 +498,8 @@ events:
         repeat: true
         skippable: false
         list:
-        - code: 0
+        - !ruby/object:RPG::MoveCommand
+          code: 0
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
@@ -540,7 +544,8 @@ events:
         repeat: true
         skippable: false
         list:
-        - code: 0
+        - !ruby/object:RPG::MoveCommand
+          code: 0
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
@@ -625,15 +630,20 @@ events:
         repeat: true
         skippable: false
         list:
-        - code: 2
+        - !ruby/object:RPG::MoveCommand
+          code: 2
           parameters: []
-        - code: 2
+        - !ruby/object:RPG::MoveCommand
+          code: 2
           parameters: []
-        - code: 3
+        - !ruby/object:RPG::MoveCommand
+          code: 3
           parameters: []
-        - code: 3
+        - !ruby/object:RPG::MoveCommand
+          code: 3
           parameters: []
-        - code: 0
+        - !ruby/object:RPG::MoveCommand
+          code: 0
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
@@ -702,7 +712,8 @@ events:
         repeat: true
         skippable: false
         list:
-        - code: 0
+        - !ruby/object:RPG::MoveCommand
+          code: 0
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
@@ -1024,7 +1035,8 @@ events:
         repeat: true
         skippable: false
         list:
-        - code: 0
+        - !ruby/object:RPG::MoveCommand
+          code: 0
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
@@ -1121,7 +1133,8 @@ events:
         repeat: true
         skippable: false
         list:
-        - code: 0
+        - !ruby/object:RPG::MoveCommand
+          code: 0
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
@@ -1166,7 +1179,8 @@ events:
         repeat: true
         skippable: false
         list:
-        - code: 0
+        - !ruby/object:RPG::MoveCommand
+          code: 0
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
@@ -1211,7 +1225,8 @@ events:
         repeat: true
         skippable: false
         list:
-        - code: 0
+        - !ruby/object:RPG::MoveCommand
+          code: 0
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
@@ -1256,7 +1271,8 @@ events:
         repeat: true
         skippable: false
         list:
-        - code: 0
+        - !ruby/object:RPG::MoveCommand
+          code: 0
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
@@ -1301,7 +1317,8 @@ events:
         repeat: true
         skippable: false
         list:
-        - code: 0
+        - !ruby/object:RPG::MoveCommand
+          code: 0
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand

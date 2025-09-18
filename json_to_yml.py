@@ -271,6 +271,7 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
             
             # Maintenir l'ordre original des propriétés
             ordered_props = ['through', 'move_frequency', 'move_type', 'trigger', 'always_on_top', 'walk_anime', 'move_speed', 'step_anime', 'direction_fix']
+            ordered_props = ['through', 'move_frequency', 'move_type', 'trigger', 'always_on_top', 'walk_anime', 'move_speed', 'step_anime', 'direction_fix']
             
             for prop in ordered_props:
                 if prop in page_data_copy:
@@ -306,17 +307,27 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
 
             if 'move_route' in page_data_copy and page_data_copy['move_route']:
                 yaml_lines.append(f"      move_route: !ruby/object:RPG::MoveRoute") 
-                move_route_content_yaml = yaml.dump(page_data_copy['move_route'],
-                                                     Dumper=CustomDumper,
-                                                     default_flow_style=False,
-                                                     sort_keys=False,
-                                                     indent=2,
-                                                     width=float('inf')) 
-                for line in move_route_content_yaml.splitlines():
-                    if line.strip():
-                        yaml_lines.append(f"        {line}") 
+                move_route = page_data_copy['move_route']
+                
+                yaml_lines.append(f"        repeat: {str(move_route.get('repeat', False)).lower()}")
+                yaml_lines.append(f"        skippable: {str(move_route.get('skippable', False)).lower()}")
+                yaml_lines.append(f"        list:")
+                
+                # Traiter chaque MoveCommand dans la liste
+                move_commands = move_route.get('list', [])
+                for move_cmd in move_commands:
+                    yaml_lines.append(f"        - !ruby/object:RPG::MoveCommand")
+                    yaml_lines.append(f"          code: {move_cmd.get('code', 0)}")
+                    
+                    move_cmd_params = move_cmd.get('parameters', [])
+                    if move_cmd_params:
+                        yaml_lines.append(f"          parameters:")
+                        for param in move_cmd_params:
+                            yaml_lines.append(f"          - {param}")
+                    else:
+                        yaml_lines.append(f"          parameters: []")
             
-            # SECTION CORRIGÉE : Traitement des commandes d'événement avec gestion des Set Move Route
+            # Set Move Route
             if commands:
                 yaml_lines.append("      list:") 
                 
@@ -477,7 +488,7 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                         yaml_lines.append(f"        indent: {command_to_dump.get('indent', 0)}")
                         yaml_lines.append(f"        code: {command_to_dump.get('code')}")
 
-    final_yaml_string = "\n".join(yaml_lines) 
+    final_yaml_string = "\n".join(yaml_lines) + "\n"
 
     with open(output_file_path, 'w', encoding='utf-8') as f:
         f.write(final_yaml_string) 
