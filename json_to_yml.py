@@ -25,11 +25,15 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
         if not isinstance(param, str):
             return param
             
+        # Debug
+        print(f"DEBUG: Processing '{param}'")
+        
         # Caractères spéciaux nécessitant des guillemets doubles au début
-        special_chars_start = ['!', '@', '#', '%', '^', '&', '*', '(', ')', '-', '+', '=', '{', '}', '[', ']', '|', '\\', ':', ';', '"', "'", '<', '>', ',', '.', '?', '/', '~', '`', '$', '§']
+        special_chars_start = ['!', '@', '#', '%', '^', '&', '*', '(', ')', '-', '+', '=', '{', '}', '[', ']', '|', '\\', ':', ';', '"', "'", '<', '>', ',', '.', '?', '/', '~', '`', '$', 'Â§']
         
         # Guillemets doubles pour caractères spéciaux au début
         needs_double_quotes = any(param.startswith(char) for char in special_chars_start)
+        print(f"DEBUG: needs_double_quotes = {needs_double_quotes}")
         
         # Guillemets simples pour éviter interprétation comme clé YAML
         needs_single_quotes = (
@@ -40,16 +44,22 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                 param.startswith(':')            # commence par :
             )
         )
+        print(f"DEBUG: needs_single_quotes = {needs_single_quotes}")
         
         if needs_double_quotes:
             # Échapper les guillemets doubles s'il y en a
             escaped_param = param.replace('"', '\\"')
-            return f'"{escaped_param}"'
+            result = f'"{escaped_param}"'
+            print(f"DEBUG: Result with double quotes: {result}")
+            return result
         elif needs_single_quotes:
             # Échapper les guillemets simples s'il y en a
             escaped_param = param.replace("'", "''")
-            return f"'{escaped_param}'"
+            result = f"'{escaped_param}'"
+            print(f"DEBUG: Result with single quotes: {result}")
+            return result
         else:
+            print(f"DEBUG: Result without quotes: {param}")
             return param
 
     class CustomDumper(yaml.SafeDumper):
@@ -62,9 +72,11 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                 return self.represent_scalar(tag, data)
 
         def represent_str(self, data):
+            special_chars = ['!', '@', '#', '%', '^', '&', '*', '(', ')', '-', '+', '=', '{', '}', '[', ']', '|', '\\', ':', ';', '"', "'", '<', '>', ',', '.', '?', '/', '~', '`', '$']
+            
             if isinstance(data, str) and (
                 ':' in data or '[' in data or ']' in data or '{' in data or '}' in data or
-                data.startswith(('!', '-', '?', ':', '|', '>')) or
+                data.startswith(tuple(special_chars)) or
                 data.lower() in ('true', 'false', 'y', 'n', 'yes', 'no') or
                 data.strip() == ''
             ):
@@ -452,31 +464,15 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                                         yaml_lines.append(f"        - ")
                                         for i, item in enumerate(param):
                                             if i == 0:
-                                                # Traitement spécial pour le code 102 (Show Choices) - forcer les guillemets simples
-                                                if command_to_dump.get('code') == 102 and isinstance(item, str):
-                                                    escaped_item = item.replace("'", "''")
-                                                    formatted_item = f"'{escaped_item}'"
-                                                else:
-                                                    formatted_item = format_yaml_string(item) if isinstance(item, str) else item
+                                                formatted_item = format_yaml_string(item) if isinstance(item, str) else item
                                                 yaml_lines[-1] += f"- {formatted_item}"
                                             else:
-                                                # Traitement spécial pour le code 102 (Show Choices) - forcer les guillemets simples
-                                                if command_to_dump.get('code') == 102 and isinstance(item, str):
-                                                    escaped_item = item.replace("'", "''")
-                                                    formatted_item = f"'{escaped_item}'"
-                                                else:
-                                                    formatted_item = format_yaml_string(item) if isinstance(item, str) else item
+                                                formatted_item = format_yaml_string(item) if isinstance(item, str) else item
                                                 yaml_lines.append(f"          - {formatted_item}")
                                     elif isinstance(param, str):
                                         # CORRECTION: Formatage spécial pour les codes 402 (toujours avec apostrophes)
-                                        if command_to_dump.get('code') == 402:
-                                            # Échapper les apostrophes s'il y en a
-                                            escaped_param = param.replace("'", "''")
-                                            yaml_lines.append(f"        - '{escaped_param}'")
-                                        else:
-                                            # Utilisation normale de la fonction format_yaml_string
-                                            formatted_param = format_yaml_string(param)
-                                            yaml_lines.append(f"        - {formatted_param}")
+                                        formatted_param = format_yaml_string(param)
+                                        yaml_lines.append(f"        - {formatted_param}")
                                     else:
                                         yaml_lines.append(f"        - {param}")
                             else:

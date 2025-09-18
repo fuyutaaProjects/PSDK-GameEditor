@@ -503,6 +503,59 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
+        parameters:
+        - - "!pluh"
+          - "&PIOUUU"
+          - emouvant
+        - 2
+        indent: 0
+        code: 102
+      - !ruby/object:RPG::EventCommand
+        parameters:
+        - 0
+        - "!pluh"
+        indent: 0
+        code: 402
+      - !ruby/object:RPG::EventCommand
+        parameters: []
+        indent: 1
+        code: 0
+      - !ruby/object:RPG::EventCommand
+        parameters:
+        - 1
+        - "&PIOUUU"
+        indent: 0
+        code: 402
+      - !ruby/object:RPG::EventCommand
+        parameters: []
+        indent: 1
+        code: 0
+      - !ruby/object:RPG::EventCommand
+        parameters:
+        - 2
+        - emouvant
+        indent: 0
+        code: 402
+      - !ruby/object:RPG::EventCommand
+        parameters: []
+        indent: 1
+        code: 0
+      - !ruby/object:RPG::EventCommand
+        parameters: []
+        indent: 0
+        code: 404
+      - !ruby/object:RPG::EventCommand
+        parameters:
+        - 20
+        indent: 0
+        code: 106
+      - !ruby/object:RPG::EventCommand
+        parameters:
+        - A
+        - 0
+        indent: 0
+        code: 123
+      - !ruby/object:RPG::EventCommand
         parameters: []
         indent: 0
         code: 0
@@ -846,15 +899,15 @@ events:
         code: 108
       - !ruby/object:RPG::EventCommand
         parameters:
-        - - 'Yes'
-          - 'No'
+        - - Yes
+          - No
         - 2
         indent: 0
         code: 102
       - !ruby/object:RPG::EventCommand
         parameters:
         - 0
-        - 'Yes'
+        - Yes
         indent: 0
         code: 402
       - !ruby/object:RPG::EventCommand
@@ -869,7 +922,7 @@ events:
       - !ruby/object:RPG::EventCommand
         parameters:
         - 1
-        - 'No'
+        - No
         indent: 0
         code: 402
       - !ruby/object:RPG::EventCommand
