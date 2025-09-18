@@ -48,6 +48,9 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
             # RPG::AudioFile
             if all(k in data for k in ['name', 'volume', 'pitch']):
                 return dumper.represent_mapping('!ruby/object:RPG::AudioFile', data)
+            # Color
+            elif all(k in data for k in ['red', 'green', 'blue', 'alpha']):
+                return dumper.represent_mapping('!ruby/object:Color', data)
             # RPG::MoveCommand
             elif all(k in data for k in ['code', 'parameters']):
                 if not any(k in data for k in ['repeat', 'skippable', 'list']):
@@ -370,7 +373,15 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                             yaml_lines.append(f"        parameters:")
                             if isinstance(command_to_dump['parameters'], list):
                                 for param in command_to_dump['parameters']:
-                                    if isinstance(param, str):
+                                    # Traitement spécial pour les objets Color
+                                    if isinstance(param, dict) and all(k in param for k in ['red', 'green', 'blue', 'alpha']):
+                                        print(f"DEBUG: Found Color object: {param}")  # Debug
+                                        yaml_lines.append(f"        - !ruby/object:Color")
+                                        yaml_lines.append(f"          red: {param['red']}")
+                                        yaml_lines.append(f"          green: {param['green']}")
+                                        yaml_lines.append(f"          blue: {param['blue']}")
+                                        yaml_lines.append(f"          alpha: {param['alpha']}")
+                                    elif isinstance(param, str):
                                         yaml_lines.append(f"        - {param}")
                                     else:
                                         yaml_lines.append(f"        - {param}")
