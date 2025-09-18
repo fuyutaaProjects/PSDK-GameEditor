@@ -132,7 +132,7 @@ public class Editor {
             /*
             try {
                 Files.deleteIfExists(jsonOutputFile.toPath());
-                System.out.println("Fichier temporaire " + jsonOutputFile.getName() + " supprimé.");
+                System.out.println("Fichier temporaire " + jsonOutputFile.getName() + " supprimÃ©.");
             } catch (IOException e) {
                 System.err.println("Erreur lors de la suppression du fichier temporaire : " + e.getMessage());
             }
@@ -194,7 +194,7 @@ public class Editor {
         String pathToPythonScript = "json_to_yml.py"; 
 
         try {
-            // Écrire le JSON temporaire
+            // Ã‰crire le JSON temporaire
             try (FileWriter file = new FileWriter(tempJsonFilePath)) {
                 file.write(mapDataJson.toString(2));
                 System.out.println("Map data temporarily saved for export to: " + tempJsonFilePath);
@@ -203,7 +203,7 @@ public class Editor {
                 return false;
             }
 
-            // Exécuter le script Python pour convertir JSON vers YAML
+            // ExÃ©cuter le script Python pour convertir JSON vers YAML
             ProcessBuilder pb = new ProcessBuilder("python", pathToPythonScript, tempJsonFilePath, exportYmlFilePath);
             pb.inheritIO();
             Process p = pb.start();
@@ -228,6 +228,33 @@ public class Editor {
             } catch (IOException e) {
                 System.err.println("Error deleting temporary JSON file for export: " + e.getMessage());
             }
+        }
+    }
+
+    /**
+     * Exporte le JSON en mémoire de manière brute pour débogage
+     * @param mapDataJson Le JSON à exporter
+     * @return true si l'export a réussi, false sinon
+     */
+    public boolean exportRawJson(JSONObject mapDataJson) {
+        if (mapDataJson == null) {
+            System.err.println("No JSON data to export - mapDataJson is null");
+            return false;
+        }
+
+        String rawJsonFilePath = rpgMakerProjectRootPath + File.separator + "debug_raw_json.json";
+
+        try {
+            try (FileWriter file = new FileWriter(rawJsonFilePath)) {
+                file.write(mapDataJson.toString(2)); // Indentation de 2 pour lisibilité
+                System.out.println("Raw JSON data exported to: " + rawJsonFilePath);
+                System.out.println("JSON size: " + mapDataJson.toString().length() + " characters");
+                return true;
+            }
+        } catch (IOException e) {
+            System.err.println("Error exporting raw JSON file: " + e.getMessage());
+            e.printStackTrace();
+            return false;
         }
     }
 }

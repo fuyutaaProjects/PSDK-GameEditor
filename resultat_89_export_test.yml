@@ -363,9 +363,9 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        code: 0
+        parameters:
         indent: 0
-        parameters: []
+        code: 0
   2: !ruby/object:RPG::Event
     id: 2
     name: EV002
@@ -408,9 +408,9 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        code: 0
+        parameters:
         indent: 0
-        parameters: []
+        code: 0
   3: !ruby/object:RPG::Event
     id: 3
     name: EV003
@@ -453,9 +453,9 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        code: 0
+        parameters:
         indent: 0
-        parameters: []
+        code: 0
   4: !ruby/object:RPG::Event
     id: 4
     name: EV004
@@ -498,9 +498,9 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        code: 0
+        parameters:
         indent: 0
-        parameters: []
+        code: 0
   5: !ruby/object:RPG::Event
     id: 5
     name: EV005
@@ -543,9 +543,9 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        code: 0
+        parameters:
         indent: 0
-        parameters: []
+        code: 0
   6: !ruby/object:RPG::Event
     id: 6
     name: EV006
@@ -597,6 +597,11 @@ events:
       list:
       - !ruby/object:RPG::EventCommand
         parameters:
+        - New Comment Added a
+        indent: 0
+        code: 108
+      - !ruby/object:RPG::EventCommand
+        parameters:
         - 0
         - !ruby/object:RPG::MoveRoute
           repeat: false
@@ -620,9 +625,9 @@ events:
         indent: 0
         code: 509
       - !ruby/object:RPG::EventCommand
-        code: 0
+        parameters:
         indent: 0
-        parameters: []
+        code: 0
   7: !ruby/object:RPG::Event
     id: 7
     name: Toolkit NPC
@@ -665,32 +670,32 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        code: 108
-        indent: 0
         parameters:
-        - 'NPC Event: Camera Scroll, dialogue, '
-      - !ruby/object:RPG::EventCommand
-        code: 408
+        - NPC Event: Camera Scroll, dialogue, 
         indent: 0
+        code: 108
+      - !ruby/object:RPG::EventCommand
         parameters:
         - delete_event_forever
-      - !ruby/object:RPG::EventCommand
-        code: 203
         indent: 0
+        code: 408
+      - !ruby/object:RPG::EventCommand
         parameters:
         - 6
         - 7
         - 4
-      - !ruby/object:RPG::EventCommand
-        code: 106
         indent: 0
+        code: 203
+      - !ruby/object:RPG::EventCommand
         parameters:
         - 20
-      - !ruby/object:RPG::EventCommand
-        code: 101
         indent: 0
+        code: 106
+      - !ruby/object:RPG::EventCommand
         parameters:
         - carotte
+        indent: 0
+        code: 101
       - !ruby/object:RPG::EventCommand
         parameters:
         - 0
@@ -713,23 +718,21 @@ events:
         indent: 0
         code: 509
       - !ruby/object:RPG::EventCommand
-        code: 355
-        indent: 0
         parameters:
         - get_character(-1).turn_toward_character(ge(9))
-      - !ruby/object:RPG::EventCommand
-        code: 355
         indent: 0
+        code: 355
+      - !ruby/object:RPG::EventCommand
         parameters:
         - start_trainer_battle(306)
-      - !ruby/object:RPG::EventCommand
-        code: 655
         indent: 0
+        code: 355
+      - !ruby/object:RPG::EventCommand
         parameters:
         - $game_temp.battle_can_lose = true
-      - !ruby/object:RPG::EventCommand
-        code: 231
         indent: 0
+        code: 655
+      - !ruby/object:RPG::EventCommand
         parameters:
         - 1
         - Alvis
@@ -741,107 +744,104 @@ events:
         - 22
         - 255
         - 0
-      - !ruby/object:RPG::EventCommand
-        code: 111
         indent: 0
+        code: 231
+      - !ruby/object:RPG::EventCommand
         parameters:
         - 12
         - detect_player_rect(2,3)
-      - !ruby/object:RPG::EventCommand
-        code: 0
-        indent: 1
-        parameters: []
-      - !ruby/object:RPG::EventCommand
-        code: 412
         indent: 0
-        parameters: []
-      - !ruby/object:RPG::EventCommand
         code: 111
+      - !ruby/object:RPG::EventCommand
+        parameters:
+        indent: 1
+        code: 0
+      - !ruby/object:RPG::EventCommand
+        parameters:
         indent: 0
+        code: 412
+      - !ruby/object:RPG::EventCommand
         parameters:
         - 12
         - $game_player.x == 13
+        indent: 0
+        code: 111
       - !ruby/object:RPG::EventCommand
-        code: 101
-        indent: 1
         parameters:
         - Le .x du joueur est bien 13.
-      - !ruby/object:RPG::EventCommand
-        code: 0
         indent: 1
-        parameters: []
-      - !ruby/object:RPG::EventCommand
-        code: 411
-        indent: 0
-        parameters: []
-      - !ruby/object:RPG::EventCommand
         code: 101
+      - !ruby/object:RPG::EventCommand
+        parameters:
         indent: 1
+        code: 0
+      - !ruby/object:RPG::EventCommand
+        parameters:
+        indent: 0
+        code: 411
+      - !ruby/object:RPG::EventCommand
         parameters:
         - Le .x du joueur n'est pas 13.
-      - !ruby/object:RPG::EventCommand
-        code: 0
         indent: 1
-        parameters: []
+        code: 101
       - !ruby/object:RPG::EventCommand
+        parameters:
+        indent: 1
+        code: 0
+      - !ruby/object:RPG::EventCommand
+        parameters:
+        indent: 0
         code: 412
-        indent: 0
-        parameters: []
       - !ruby/object:RPG::EventCommand
+        parameters:
+        - --------Check variable value------
+        indent: 0
         code: 108
-        indent: 0
-        parameters:
-        - '--------Check variable value------'
       - !ruby/object:RPG::EventCommand
-        code: 102
-        indent: 0
         parameters:
-        - - 'Yes'
-          - 'No'
+        - ['Yes', 'No']
         - 2
-      - !ruby/object:RPG::EventCommand
-        code: 402
         indent: 0
+        code: 102
+      - !ruby/object:RPG::EventCommand
         parameters:
         - 0
-        - 'Yes'
+        - Yes
+        indent: 0
+        code: 402
       - !ruby/object:RPG::EventCommand
-        code: 101
-        indent: 1
         parameters:
         - carrote 2 dans choix
-      - !ruby/object:RPG::EventCommand
-        code: 0
         indent: 1
-        parameters: []
+        code: 101
       - !ruby/object:RPG::EventCommand
-        code: 402
-        indent: 0
+        parameters:
+        indent: 1
+        code: 0
+      - !ruby/object:RPG::EventCommand
         parameters:
         - 1
-        - 'No'
-      - !ruby/object:RPG::EventCommand
-        code: 0
-        indent: 1
-        parameters: []
-      - !ruby/object:RPG::EventCommand
-        code: 404
+        - No
         indent: 0
-        parameters: []
+        code: 402
       - !ruby/object:RPG::EventCommand
-        code: 116
-        indent: 0
-        parameters: []
-      - !ruby/object:RPG::EventCommand
-        code: 132
-        indent: 0
         parameters:
-        - volume: 100
-          name: pkmrb-battle1
-          pitch: 100
+        indent: 1
+        code: 0
       - !ruby/object:RPG::EventCommand
-        code: 204
+        parameters:
         indent: 0
+        code: 404
+      - !ruby/object:RPG::EventCommand
+        parameters:
+        indent: 0
+        code: 116
+      - !ruby/object:RPG::EventCommand
+        parameters:
+        - {'volume': 100, 'name': 'pkmrb-battle1', 'pitch': 100}
+        indent: 0
+        code: 132
+      - !ruby/object:RPG::EventCommand
         parameters:
         - 1
         - Lumicite-export
@@ -851,25 +851,22 @@ events:
         - 200
         - 0
         - 0
-      - !ruby/object:RPG::EventCommand
-        code: 224
         indent: 0
+        code: 204
+      - !ruby/object:RPG::EventCommand
         parameters:
-        - red: 255
-          green: 255
-          blue: 255
-          alpha: 255
+        - {'red': 255, 'green': 255, 'blue': 255, 'alpha': 255}
         - 10
-      - !ruby/object:RPG::EventCommand
-        code: 225
         indent: 0
+        code: 224
+      - !ruby/object:RPG::EventCommand
         parameters:
         - 5
         - 5
         - 5
-      - !ruby/object:RPG::EventCommand
-        code: 231
         indent: 0
+        code: 225
+      - !ruby/object:RPG::EventCommand
         parameters:
         - 1
         - Baron
@@ -881,37 +878,35 @@ events:
         - 100
         - 255
         - 0
-      - !ruby/object:RPG::EventCommand
-        code: 241
         indent: 0
+        code: 231
+      - !ruby/object:RPG::EventCommand
         parameters:
-        - volume: 100
-          name: battle1
-          pitch: 100
-      - !ruby/object:RPG::EventCommand
-        code: 242
+        - {'volume': 100, 'name': 'battle1', 'pitch': 100}
         indent: 0
+        code: 241
+      - !ruby/object:RPG::EventCommand
         parameters:
         - 10
-      - !ruby/object:RPG::EventCommand
-        code: 203
         indent: 0
+        code: 242
+      - !ruby/object:RPG::EventCommand
         parameters:
         - 2
         - 1
         - 4
-      - !ruby/object:RPG::EventCommand
-        code: 202
         indent: 0
+        code: 203
+      - !ruby/object:RPG::EventCommand
         parameters:
         - 0
         - 0
         - 26
         - 2
         - 0
-      - !ruby/object:RPG::EventCommand
-        code: 201
         indent: 0
+        code: 202
+      - !ruby/object:RPG::EventCommand
         parameters:
         - 0
         - 6
@@ -919,33 +914,31 @@ events:
         - 14
         - 0
         - 0
-      - !ruby/object:RPG::EventCommand
-        code: 245
         indent: 0
+        code: 201
+      - !ruby/object:RPG::EventCommand
         parameters:
-        - volume: 80
-          name: 002-wind02
-          pitch: 100
-      - !ruby/object:RPG::EventCommand
-        code: 246
+        - {'volume': 80, 'name': '002-wind02', 'pitch': 100}
         indent: 0
+        code: 245
+      - !ruby/object:RPG::EventCommand
         parameters:
         - 10
-      - !ruby/object:RPG::EventCommand
-        code: 250
         indent: 0
+        code: 246
+      - !ruby/object:RPG::EventCommand
         parameters:
-        - volume: 80
-          name: 020-teleport03
-          pitch: 100
+        - {'volume': 80, 'name': '020-teleport03', 'pitch': 100}
+        indent: 0
+        code: 250
       - !ruby/object:RPG::EventCommand
+        parameters:
+        indent: 0
         code: 251
-        indent: 0
-        parameters: []
       - !ruby/object:RPG::EventCommand
-        code: 0
+        parameters:
         indent: 0
-        parameters: []
+        code: 0
     - !ruby/object:RPG::Event::Page
       through: false
       move_frequency: 3
@@ -982,61 +975,61 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        code: 108
-        indent: 0
         parameters:
         - SPECIFIC WILD POKEMON ENCOUNTER
-      - !ruby/object:RPG::EventCommand
+        indent: 0
         code: 108
-        indent: 0
-        parameters:
-        - 'Exemple: les echancarbons dans la grotte aquatique,'
       - !ruby/object:RPG::EventCommand
-        code: 408
+        parameters:
+        - Exemple: les echancarbons dans la grotte aquatique,
         indent: 0
+        code: 108
+      - !ruby/object:RPG::EventCommand
         parameters:
         - au passage avec Port Avalon.
-      - !ruby/object:RPG::EventCommand
-        code: 101
         indent: 0
+        code: 408
+      - !ruby/object:RPG::EventCommand
         parameters:
-        - '!!!'
-      - !ruby/object:RPG::EventCommand
-        code: 355
+        - !!!
         indent: 0
+        code: 101
+      - !ruby/object:RPG::EventCommand
         parameters:
         - call_battle_wild(:grimer, 6)
-      - !ruby/object:RPG::EventCommand
-        code: 111
         indent: 0
+        code: 355
+      - !ruby/object:RPG::EventCommand
         parameters:
         - 0
         - 37
         - 0
+        indent: 0
+        code: 111
       - !ruby/object:RPG::EventCommand
-        code: 355
-        indent: 1
         parameters:
         - $game_map.autoplay
-      - !ruby/object:RPG::EventCommand
-        code: 121
         indent: 1
+        code: 355
+      - !ruby/object:RPG::EventCommand
         parameters:
         - 130
         - 130
         - 1
-      - !ruby/object:RPG::EventCommand
-        code: 0
         indent: 1
-        parameters: []
+        code: 121
       - !ruby/object:RPG::EventCommand
-        code: 412
-        indent: 0
-        parameters: []
-      - !ruby/object:RPG::EventCommand
+        parameters:
+        indent: 1
         code: 0
+      - !ruby/object:RPG::EventCommand
+        parameters:
         indent: 0
-        parameters: []
+        code: 412
+      - !ruby/object:RPG::EventCommand
+        parameters:
+        indent: 0
+        code: 0
   8: !ruby/object:RPG::Event
     id: 8
     name: EV008
@@ -1079,9 +1072,9 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        code: 0
+        parameters:
         indent: 0
-        parameters: []
+        code: 0
   9: !ruby/object:RPG::Event
     id: 9
     name: EV009
@@ -1124,9 +1117,9 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        code: 0
+        parameters:
         indent: 0
-        parameters: []
+        code: 0
   10: !ruby/object:RPG::Event
     id: 10
     name: EV010
@@ -1169,9 +1162,9 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        code: 0
+        parameters:
         indent: 0
-        parameters: []
+        code: 0
   11: !ruby/object:RPG::Event
     id: 11
     name: EV011
@@ -1214,9 +1207,9 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        code: 0
+        parameters:
         indent: 0
-        parameters: []
+        code: 0
   12: !ruby/object:RPG::Event
     id: 12
     name: EV012
@@ -1259,6 +1252,6 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        code: 0
+        parameters:
         indent: 0
-        parameters: []
+        code: 0

@@ -99,7 +99,31 @@ public class TileGridToolbar extends JToolBar {
             }
         });
         add(toggleGridButton);
+
+
+        JButton exportRawJsonButton = createStyledButton("Export Raw JSON");
+        exportRawJsonButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (editor != null && currentMapDataJson != null) {
+                    boolean success = editor.exportRawJson(currentMapDataJson);
+                    if (success) {
+                        showStyledDialog("Raw JSON exported to debug_raw_json.json successfully!", "Export Success", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        showStyledDialog("Failed to export raw JSON. Check console for details.", "Export Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                } else {
+                    showStyledDialog(
+                        "Map data or Editor instance not available. Make sure a map is loaded.", 
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+        add(exportRawJsonButton);
+
     }
+
+    
 
     private JButton createStyledButton(String text) {
         JButton button = new JButton(text);

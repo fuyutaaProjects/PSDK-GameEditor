@@ -210,33 +210,32 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
 
         yaml_lines.append("    pages:") 
         for page_index, page_data in enumerate(event_data.get('pages', [])):
-            commands = [] 
+            # CORRECTION PRINCIPALE : Normaliser la structure des commandes
+            commands = []
+            page_data_copy = page_data.copy()  # Copie pour éviter de modifier l'original
+            
+            # Gérer les deux cas : 'commands' ou 'list'
+            if 'commands' in page_data_copy: 
+                commands = page_data_copy.pop('commands', []) 
+            elif 'list' in page_data_copy:
+                commands = page_data_copy.pop('list', [])
 
             yaml_lines.append(f"    - !ruby/object:RPG::Event::Page") 
             
-            if 'commands' in page_data: 
-                commands = page_data.pop('commands', []) 
+            # Maintenir l'ordre original des propriétés
+            ordered_props = ['through', 'move_frequency', 'move_type', 'trigger', 'always_on_top', 'walk_anime', 'move_speed', 'step_anime', 'direction_fix']
             
-            simple_page_attrs = {
-                k: v for k, v in page_data.items() 
-                if k not in ['graphic', 'condition', 'move_route', 'page_index'] 
-            }
-            
-            simple_attrs_yaml = yaml.dump(simple_page_attrs,
-                                          Dumper=CustomDumper,
-                                          default_flow_style=False,
-                                          sort_keys=False,
-                                          indent=2,
-                                          width=float('inf')) 
-            for line in simple_attrs_yaml.splitlines():
-                if line.strip():
-                    yaml_lines.append(f"      {line}") 
-                else:
-                    yaml_lines.append("") 
+            for prop in ordered_props:
+                if prop in page_data_copy:
+                    value = page_data_copy[prop]
+                    if isinstance(value, bool):
+                        yaml_lines.append(f"      {prop}: {str(value).lower()}")
+                    else:
+                        yaml_lines.append(f"      {prop}: {value}")
 
-            if 'graphic' in page_data and page_data['graphic']:
+            if 'graphic' in page_data_copy and page_data_copy['graphic']:
                 yaml_lines.append(f"      graphic: !ruby/object:RPG::Event::Page::Graphic") 
-                graphic_content_yaml = yaml.dump(page_data['graphic'],
+                graphic_content_yaml = yaml.dump(page_data_copy['graphic'],
                                                   Dumper=CustomDumper,
                                                   default_flow_style=False,
                                                   sort_keys=False,
@@ -245,12 +244,10 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                 for line in graphic_content_yaml.splitlines():
                     if line.strip():
                         yaml_lines.append(f"        {line}") 
-                    else:
-                        yaml_lines.append("") 
             
-            if 'condition' in page_data and page_data['condition']:
+            if 'condition' in page_data_copy and page_data_copy['condition']:
                 yaml_lines.append(f"      condition: !ruby/object:RPG::Event::Page::Condition") 
-                condition_content_yaml = yaml.dump(page_data['condition'],
+                condition_content_yaml = yaml.dump(page_data_copy['condition'],
                                                     Dumper=CustomDumper,
                                                     default_flow_style=False,
                                                     sort_keys=False,
@@ -259,12 +256,10 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                 for line in condition_content_yaml.splitlines():
                     if line.strip():
                         yaml_lines.append(f"        {line}") 
-                    else:
-                        yaml_lines.append("") 
 
-            if 'move_route' in page_data and page_data['move_route']:
+            if 'move_route' in page_data_copy and page_data_copy['move_route']:
                 yaml_lines.append(f"      move_route: !ruby/object:RPG::MoveRoute") 
-                move_route_content_yaml = yaml.dump(page_data['move_route'],
+                move_route_content_yaml = yaml.dump(page_data_copy['move_route'],
                                                      Dumper=CustomDumper,
                                                      default_flow_style=False,
                                                      sort_keys=False,
@@ -273,8 +268,6 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                 for line in move_route_content_yaml.splitlines():
                     if line.strip():
                         yaml_lines.append(f"        {line}") 
-                    else:
-                        yaml_lines.append("") 
             
             # SECTION CORRIGÉE : Traitement des commandes d'événement avec gestion des Set Move Route
             if commands:
@@ -292,11 +285,13 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                             processed_params.append(processed_p)
                         command_to_dump['parameters'] = processed_params
                     
-                    # Convertir les valeurs numériques en entiers (pas en strings)
+                    # CORRECTION CRITIQUE : Convertir les valeurs numériques en entiers
                     if 'code' in command_to_dump:
-                        command_to_dump['code'] = int(command_to_dump['code'])
+                        if isinstance(command_to_dump['code'], str):
+                            command_to_dump['code'] = int(command_to_dump['code'])
                     if 'indent' in command_to_dump:
-                        command_to_dump['indent'] = int(command_to_dump['indent'])
+                        if isinstance(command_to_dump['indent'], str):
+                            command_to_dump['indent'] = int(command_to_dump['indent'])
                     
                     # Gestion spéciale pour les commandes "Set Move Route" (code 209)
                     if command_to_dump.get('code') == 209:
@@ -370,18 +365,20 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                     else:
                         yaml_lines.append(f"      - !ruby/object:RPG::EventCommand")
                         
-                        # Générer le YAML pour cette commande
-                        cmd_attrs_yaml = yaml.dump(command_to_dump,
-                                                     Dumper=CustomDumper,
-                                                     default_flow_style=False,
-                                                     sort_keys=False,
-                                                     indent=2,
-                                                     width=float('inf')) 
+                        # Maintenir l'ordre des propriétés : parameters, indent, code
+                        if 'parameters' in command_to_dump:
+                            yaml_lines.append(f"        parameters:")
+                            if isinstance(command_to_dump['parameters'], list):
+                                for param in command_to_dump['parameters']:
+                                    if isinstance(param, str):
+                                        yaml_lines.append(f"        - {param}")
+                                    else:
+                                        yaml_lines.append(f"        - {param}")
+                            else:
+                                yaml_lines.append(f"        - {command_to_dump['parameters']}")
                         
-                        # Ajouter chaque ligne avec l'indentation appropriée
-                        for line in cmd_attrs_yaml.splitlines():
-                            if line.strip():
-                                yaml_lines.append(f"        {line}") 
+                        yaml_lines.append(f"        indent: {command_to_dump.get('indent', 0)}")
+                        yaml_lines.append(f"        code: {command_to_dump.get('code')}")
 
     final_yaml_string = "\n".join(yaml_lines) 
 
