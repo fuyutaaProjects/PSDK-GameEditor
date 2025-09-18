@@ -389,7 +389,31 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                                         yaml_lines.append(f"          volume: {param['volume']}")
                                         yaml_lines.append(f"          pitch: {param['pitch']}")
                                     elif isinstance(param, str):
-                                        yaml_lines.append(f"        - {param}")
+                                        # Caractères spéciaux nécessitant des guillemets doubles au début
+                                        special_chars_start = ['!', '@', '#', '%', '^', '&', '*', '(', ')', '-', '+', '=', '{', '}', '[', ']', '|', '\\', ':', ';', '"', "'", '<', '>', ',', '.', '?', '/', '~', '`', '$', '§']                                        
+                                        # Guillemets doubles pour caractères spéciaux au début
+                                        needs_double_quotes = any(param.startswith(char) for char in special_chars_start)
+                                        
+                                        # Guillemets simples pour éviter interprétation comme clé YAML
+                                        needs_single_quotes = (
+                                            not needs_double_quotes and  # Priorité aux guillemets doubles
+                                            ':' in param and (
+                                                param.endswith(':') or           # se termine par :
+                                                ': ' in param or                 # contient ': ' (clé: valeur)
+                                                param.startswith(':')            # commence par :
+                                            )
+                                        )
+                                        
+                                        if needs_double_quotes:
+                                            # Échapper les guillemets doubles s'il y en a
+                                            escaped_param = param.replace('"', '\\"')
+                                            yaml_lines.append(f'        - "{escaped_param}"')
+                                        elif needs_single_quotes:
+                                            # Échapper les guillemets simples s'il y en a
+                                            escaped_param = param.replace("'", "''")
+                                            yaml_lines.append(f"        - '{escaped_param}'")
+                                        else:
+                                            yaml_lines.append(f"        - {param}")
                                     else:
                                         yaml_lines.append(f"        - {param}")
                             else:

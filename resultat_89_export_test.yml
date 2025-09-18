@@ -323,7 +323,7 @@ data: !ruby/object:Table
 events:
   1: !ruby/object:RPG::Event
     id: 1
-    name: EV001
+    name: {'__binary_content__': 'wqcga2FlcnU='}
     x: 1
     y: 2
     pages:
@@ -368,7 +368,7 @@ events:
         code: 0
   2: !ruby/object:RPG::Event
     id: 2
-    name: EV002
+    name: !!! what
     x: 2
     y: 2
     pages:
@@ -544,6 +544,46 @@ events:
       list:
       - !ruby/object:RPG::EventCommand
         parameters:
+        - ",tortue bleue"
+        indent: 0
+        code: 101
+      - !ruby/object:RPG::EventCommand
+        parameters:
+        - ">tortue"
+        indent: 0
+        code: 101
+      - !ruby/object:RPG::EventCommand
+        parameters:
+        - "$tortue"
+        indent: 0
+        code: 101
+      - !ruby/object:RPG::EventCommand
+        parameters:
+        - "(tortue)"
+        indent: 0
+        code: 101
+      - !ruby/object:RPG::EventCommand
+        parameters:
+        - "&tortue"
+        indent: 0
+        code: 101
+      - !ruby/object:RPG::EventCommand
+        parameters:
+        - "!tortue"
+        indent: 0
+        code: 101
+      - !ruby/object:RPG::EventCommand
+        parameters:
+        - t,o>r$t&u'e
+        indent: 0
+        code: 101
+      - !ruby/object:RPG::EventCommand
+        parameters:
+        - tor "tue"
+        indent: 0
+        code: 101
+      - !ruby/object:RPG::EventCommand
+        parameters:
         indent: 0
         code: 0
   6: !ruby/object:RPG::Event
@@ -609,9 +649,6 @@ events:
             - 0
             - 8
             - 0
-          - &2 !ruby/object:RPG::MoveCommand
-            code: 1
-            parameters: []
           - !ruby/object:RPG::MoveCommand
             code: 0
             parameters: []
@@ -620,11 +657,6 @@ events:
       - !ruby/object:RPG::EventCommand
         parameters:
         - *1
-        indent: 0
-        code: 509
-      - !ruby/object:RPG::EventCommand
-        parameters:
-        - {'code': 1, 'parameters': []}
         indent: 0
         code: 509
       - !ruby/object:RPG::EventCommand
@@ -674,7 +706,7 @@ events:
       list:
       - !ruby/object:RPG::EventCommand
         parameters:
-        - NPC Event: Camera Scroll, dialogue, 
+        - 'NPC Event: Camera Scroll, dialogue, '
         indent: 0
         code: 108
       - !ruby/object:RPG::EventCommand
@@ -706,7 +738,7 @@ events:
           repeat: false
           skippable: false
           list:
-          - &3 !ruby/object:RPG::MoveCommand
+          - &2 !ruby/object:RPG::MoveCommand
             code: 45
             parameters:
             - emotion(:nocomment, 0, oy_offset: 10)
@@ -717,7 +749,7 @@ events:
         code: 209
       - !ruby/object:RPG::EventCommand
         parameters:
-        - *3
+        - *2
         indent: 0
         code: 509
       - !ruby/object:RPG::EventCommand
@@ -732,7 +764,7 @@ events:
         code: 355
       - !ruby/object:RPG::EventCommand
         parameters:
-        - $game_temp.battle_can_lose = true
+        - "$game_temp.battle_can_lose = true"
         indent: 0
         code: 655
       - !ruby/object:RPG::EventCommand
@@ -766,7 +798,7 @@ events:
       - !ruby/object:RPG::EventCommand
         parameters:
         - 12
-        - $game_player.x == 13
+        - "$game_player.x == 13"
         indent: 0
         code: 111
       - !ruby/object:RPG::EventCommand
@@ -797,7 +829,7 @@ events:
         code: 412
       - !ruby/object:RPG::EventCommand
         parameters:
-        - --------Check variable value------
+        - "--------Check variable value------"
         indent: 0
         code: 108
       - !ruby/object:RPG::EventCommand
@@ -1000,7 +1032,7 @@ events:
         code: 108
       - !ruby/object:RPG::EventCommand
         parameters:
-        - Exemple: les echancarbons dans la grotte aquatique,
+        - 'Exemple: les echancarbons dans la grotte aquatique,'
         indent: 0
         code: 108
       - !ruby/object:RPG::EventCommand
@@ -1010,7 +1042,7 @@ events:
         code: 408
       - !ruby/object:RPG::EventCommand
         parameters:
-        - !!!
+        - "!!!"
         indent: 0
         code: 101
       - !ruby/object:RPG::EventCommand
@@ -1027,7 +1059,7 @@ events:
         code: 111
       - !ruby/object:RPG::EventCommand
         parameters:
-        - $game_map.autoplay
+        - "$game_map.autoplay"
         indent: 1
         code: 355
       - !ruby/object:RPG::EventCommand
