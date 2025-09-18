@@ -20,7 +20,7 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
 
     def format_yaml_string(param):
         """
-        Formate une chaîne pour éviter les problèmes d'interprétation YAML
+        Formate une chaÃ®ne pour Ã©viter les problÃ¨mes d'interprÃ©tation YAML
         """
         if not isinstance(param, str):
             return param
@@ -28,32 +28,32 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
         # Debug
         print(f"DEBUG: Processing '{param}'")
         
-        # Caractères spéciaux nécessitant des guillemets doubles au début
-        special_chars_start = ['!', '@', '#', '%', '^', '&', '*', '(', ')', '-', '+', '=', '{', '}', '[', ']', '|', '\\', ':', ';', '"', "'", '<', '>', ',', '.', '?', '/', '~', '`', '$', 'Â§']
+        # CaractÃ¨res spÃ©ciaux nÃ©cessitant des guillemets doubles au dÃ©but
+        special_chars_start = ['!', '@', '#', '%', '^', '&', '*', '(', ')', '-', '+', '=', '{', '}', '[', ']', '|', '\\', ':', ';', '"', "'", '<', '>', ',', '.', '?', '/', '~', '`', '$', 'Ã‚Â§']
         
-        # Guillemets doubles pour caractères spéciaux au début
+        # Guillemets doubles pour caractÃ¨res spÃ©ciaux au dÃ©but
         needs_double_quotes = any(param.startswith(char) for char in special_chars_start)
         print(f"DEBUG: needs_double_quotes = {needs_double_quotes}")
         
-        # Guillemets simples pour éviter interprétation comme clé YAML
+        # Guillemets simples pour Ã©viter interprÃ©tation comme clÃ© YAML
         needs_single_quotes = (
-            not needs_double_quotes and  # Priorité aux guillemets doubles
+            not needs_double_quotes and  # PrioritÃ© aux guillemets doubles
             ':' in param and (
                 param.endswith(':') or           # se termine par :
-                ': ' in param or                 # contient ': ' (clé: valeur)
+                ': ' in param or                 # contient ': ' (clÃ©: valeur)
                 param.startswith(':')            # commence par :
             )
         )
         print(f"DEBUG: needs_single_quotes = {needs_single_quotes}")
         
         if needs_double_quotes:
-            # Échapper les guillemets doubles s'il y en a
+            # Ã‰chapper les guillemets doubles s'il y en a
             escaped_param = param.replace('"', '\\"')
             result = f'"{escaped_param}"'
             print(f"DEBUG: Result with double quotes: {result}")
             return result
         elif needs_single_quotes:
-            # Échapper les guillemets simples s'il y en a
+            # Ã‰chapper les guillemets simples s'il y en a
             escaped_param = param.replace("'", "''")
             result = f"'{escaped_param}'"
             print(f"DEBUG: Result with single quotes: {result}")
@@ -111,7 +111,7 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
             elif all(k in data for k in ['character_name', 'character_index', 'direction', 'pattern', 'opacity', 'blend_type']):
                 return dumper.represent_mapping('!ruby/object:RPG::Event::Page::Graphic', data)
             
-            # Fallback générique pour les autres dicts qui sont des objets Ruby
+            # Fallback gÃ©nÃ©rique pour les autres dicts qui sont des objets Ruby
             return dumper.represent_mapping('!ruby/object:', data)
         return dumper.represent_data(data)
 
@@ -162,11 +162,11 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                 if row_end_index <= len(layer_grid_flat):
                     row_tiles = layer_grid_flat[row_start_index : row_end_index]
                     row_str = " ".join(map(str, row_tiles))
-                    table_lines.append(row_str) # Ajouter à table_lines
+                    table_lines.append(row_str) # Ajouter Ã  table_lines
                 else:
                     print(f"Warning: Insufficient grid data for layer {z}, row {y}. Padding with zeros.")
                     table_tiles = ["0"] * width
-                    table_lines.append(" ".join(table_tiles)) # Ajouter à table_lines
+                    table_lines.append(" ".join(table_tiles)) # Ajouter Ã  table_lines
         
         table_data_string = "\n".join(table_lines) # Joindre table_lines pour former table_data_string
     else:
@@ -189,7 +189,7 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
         if event_id is not None:
             events_dict_for_yaml[event_id] = event_item
 
-    # Cette partie de yaml_lines avait été déplacée, elle est maintenant à la bonne place
+    # Cette partie de yaml_lines avait Ã©tÃ© dÃ©placÃ©e, elle est maintenant Ã  la bonne place
     yaml_lines.append(f"tileset_id: {reconstructed_data['tileset_id']}")
     yaml_lines.append(f"width: {reconstructed_data['width']}")
     yaml_lines.append(f"height: {reconstructed_data['height']}")
@@ -229,7 +229,7 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
 
     yaml_lines.append("events:") 
     
-    # Dictionnaire pour stocker les références des MoveCommands
+    # Dictionnaire pour stocker les rÃ©fÃ©rences des MoveCommands
     move_command_references = {}
     move_command_counter = 1
     
@@ -252,15 +252,15 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                     yaml_lines.append(f"    {line}") 
 
         yaml_lines.append(f"    id: {event_data.get('id', 0)}")
-        # CORRECTION: Gestion du champ name avec support des données binaires
+        # CORRECTION: Gestion du champ name avec support des donnÃ©es binaires
         event_name = event_data.get('name', '')
         if isinstance(event_name, dict) and '__binary_content__' in event_name:
-            # Cas des données binaires encodées
+            # Cas des donnÃ©es binaires encodÃ©es
             base64_content = event_name['__binary_content__']
             yaml_lines.append(f"    name: !binary |-")
             yaml_lines.append(f"      {base64_content}")
         else:
-            # Cas normal avec formatage de chaîne
+            # Cas normal avec formatage de chaÃ®ne
             formatted_name = format_yaml_string(event_name)
             yaml_lines.append(f"    name: {formatted_name}")
         yaml_lines.append(f"    x: {event_data.get('x', 0)}")
@@ -271,9 +271,9 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
         for page_index, page_data in enumerate(event_data.get('pages', [])):
             # CORRECTION PRINCIPALE : Normaliser la structure des commandes
             commands = []
-            page_data_copy = page_data.copy()  # Copie pour éviter de modifier l'original
+            page_data_copy = page_data.copy()  # Copie pour Ã©viter de modifier l'original
             
-            # Gérer les deux cas : 'commands' ou 'list'
+            # GÃ©rer les deux cas : 'commands' ou 'list'
             if 'commands' in page_data_copy: 
                 commands = page_data_copy.pop('commands', []) 
             elif 'list' in page_data_copy:
@@ -281,7 +281,7 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
 
             yaml_lines.append(f"    - !ruby/object:RPG::Event::Page") 
             
-            # Maintenir l'ordre original des propriétés
+            # Maintenir l'ordre original des propriÃ©tÃ©s
             ordered_props = ['through', 'move_frequency', 'move_type', 'trigger', 'always_on_top', 'walk_anime', 'move_speed', 'step_anime', 'direction_fix']
             ordered_props = ['through', 'move_frequency', 'move_type', 'trigger', 'always_on_top', 'walk_anime', 'move_speed', 'step_anime', 'direction_fix']
             
@@ -295,15 +295,15 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
 
             if 'graphic' in page_data_copy and page_data_copy['graphic']:
                 yaml_lines.append(f"      graphic: !ruby/object:RPG::Event::Page::Graphic") 
-                graphic_content_yaml = yaml.dump(page_data_copy['graphic'],
-                                                  Dumper=CustomDumper,
-                                                  default_flow_style=False,
-                                                  sort_keys=False,
-                                                  indent=2,
-                                                  width=float('inf')) 
-                for line in graphic_content_yaml.splitlines():
-                    if line.strip():
-                        yaml_lines.append(f"        {line}") 
+                graphic_data = page_data_copy['graphic']
+                
+                # Traiter chaque propriété du graphic en appliquant format_yaml_string aux strings
+                for key, value in graphic_data.items():
+                    if isinstance(value, str):
+                        formatted_value = format_yaml_string(value)
+                        yaml_lines.append(f"        {key}: {formatted_value}")
+                    else:
+                        yaml_lines.append(f"        {key}: {value}")
             
             if 'condition' in page_data_copy and page_data_copy['condition']:
                 yaml_lines.append(f"      condition: !ruby/object:RPG::Event::Page::Condition") 
@@ -344,10 +344,10 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                 yaml_lines.append("      list:") 
                 
                 for cmd_index, command in enumerate(commands):
-                    # Créer une copie pour éviter de modifier l'original
+                    # CrÃ©er une copie pour Ã©viter de modifier l'original
                     command_to_dump = command.copy()
                     
-                    # Traiter les paramètres (notamment les données binaires)
+                    # Traiter les paramÃ¨tres (notamment les donnÃ©es binaires)
                     if 'parameters' in command_to_dump and isinstance(command_to_dump['parameters'], list):
                         processed_params = []
                         for p in command_to_dump['parameters']:
@@ -355,7 +355,7 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                             processed_params.append(processed_p)
                         command_to_dump['parameters'] = processed_params
                     
-                    # CORRECTION CRITIQUE : Convertir les valeurs numériques en entiers
+                    # CORRECTION CRITIQUE : Convertir les valeurs numÃ©riques en entiers
                     if 'code' in command_to_dump:
                         if isinstance(command_to_dump['code'], str):
                             command_to_dump['code'] = int(command_to_dump['code'])
@@ -363,21 +363,21 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                         if isinstance(command_to_dump['indent'], str):
                             command_to_dump['indent'] = int(command_to_dump['indent'])
                     
-                    # Gestion spéciale pour les commandes "Set Move Route" (code 209)
+                    # Gestion spÃ©ciale pour les commandes "Set Move Route" (code 209)
                     if command_to_dump.get('code') == 209:
                         yaml_lines.append(f"      - !ruby/object:RPG::EventCommand")
                         
-                        # Les paramètres du Set Move Route
+                        # Les paramÃ¨tres du Set Move Route
                         params = command_to_dump.get('parameters', [])
                         if len(params) >= 2 and isinstance(params[1], dict):
                             move_route_data = params[1]
                             
-                            # Écrire les paramètres
+                            # Ã‰crire les paramÃ¨tres
                             yaml_lines.append(f"        parameters:")
                             yaml_lines.append(f"        - {params[0] if len(params) > 0 else 0}")
                             yaml_lines.append(f"        - !ruby/object:RPG::MoveRoute")
                             
-                            # Écrire repeat et skippable
+                            # Ã‰crire repeat et skippable
                             yaml_lines.append(f"          repeat: {str(move_route_data.get('repeat', False)).lower()}")
                             yaml_lines.append(f"          skippable: {str(move_route_data.get('skippable', False)).lower()}")
                             yaml_lines.append(f"          list:")
@@ -385,17 +385,17 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                             # Traiter la liste des MoveCommands
                             move_commands = move_route_data.get('list', [])
                             for move_cmd_index, move_cmd in enumerate(move_commands):
-                                # Pour toutes les commandes sauf la dernière, créer une référence
+                                # Pour toutes les commandes sauf la derniÃ¨re, crÃ©er une rÃ©fÃ©rence
                                 if move_cmd_index < len(move_commands) - 1:
                                     ref_id = move_command_counter
                                     move_command_references[f"cmd_{cmd_index}_{move_cmd_index}"] = ref_id
                                     yaml_lines.append(f"          - &{ref_id} !ruby/object:RPG::MoveCommand")
                                     move_command_counter += 1
                                 else:
-                                    # Dernière commande sans référence
+                                    # DerniÃ¨re commande sans rÃ©fÃ©rence
                                     yaml_lines.append(f"          - !ruby/object:RPG::MoveCommand")
                                 
-                                # Écrire le code et les paramètres de la MoveCommand
+                                # Ã‰crire le code et les paramÃ¨tres de la MoveCommand
                                 yaml_lines.append(f"            code: {move_cmd.get('code', 0)}")
                                 move_cmd_params = move_cmd.get('parameters', [])
                                 if move_cmd_params:
@@ -405,22 +405,22 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                                 else:
                                     yaml_lines.append(f"            parameters: []")
                         
-                        # Écrire indent et code
+                        # Ã‰crire indent et code
                         yaml_lines.append(f"        indent: {command_to_dump.get('indent', 0)}")
                         yaml_lines.append(f"        code: {command_to_dump.get('code')}")
                     
-                    # Gestion spéciale pour les commandes de continuation (code 509)
+                    # Gestion spÃ©ciale pour les commandes de continuation (code 509)
                     elif command_to_dump.get('code') == 509:
                         yaml_lines.append(f"      - !ruby/object:RPG::EventCommand")
                         
-                        # Chercher la référence correspondante
-                        ref_key = f"cmd_{cmd_index-1}_0"  # Généralement la première commande du move route précédent
+                        # Chercher la rÃ©fÃ©rence correspondante
+                        ref_key = f"cmd_{cmd_index-1}_0"  # GÃ©nÃ©ralement la premiÃ¨re commande du move route prÃ©cÃ©dent
                         if ref_key in move_command_references:
                             ref_id = move_command_references[ref_key]
                             yaml_lines.append(f"        parameters:")
                             yaml_lines.append(f"        - *{ref_id}")
                         else:
-                            # Fallback si pas de référence trouvée
+                            # Fallback si pas de rÃ©fÃ©rence trouvÃ©e
                             yaml_lines.append(f"        parameters:")
                             if 'parameters' in command_to_dump and command_to_dump['parameters']:
                                 for param in command_to_dump['parameters']:
@@ -435,16 +435,16 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                     else:
                         yaml_lines.append(f"      - !ruby/object:RPG::EventCommand")
                         
-                        # Maintenir l'ordre des propriétés : parameters, indent, code
+                        # Maintenir l'ordre des propriÃ©tÃ©s : parameters, indent, code
                         if 'parameters' in command_to_dump:
                             params_list = command_to_dump['parameters']
-                            # Vérifier si la liste des paramètres est vide ou None
+                            # VÃ©rifier si la liste des paramÃ¨tres est vide ou None
                             if not params_list or (isinstance(params_list, list) and len(params_list) == 0):
                                 yaml_lines.append(f"        parameters: []")
                             elif isinstance(params_list, list):
                                 yaml_lines.append(f"        parameters:")
                                 for param in params_list:
-                                    # Traitement spécial pour les objets Color
+                                    # Traitement spÃ©cial pour les objets Color
                                     if isinstance(param, dict) and all(k in param for k in ['red', 'green', 'blue', 'alpha']):
                                         print(f"DEBUG: Found Color object: {param}")  # Debug
                                         yaml_lines.append(f"        - !ruby/object:Color")
@@ -452,14 +452,14 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                                         yaml_lines.append(f"          green: {param['green']}")
                                         yaml_lines.append(f"          blue: {param['blue']}")
                                         yaml_lines.append(f"          alpha: {param['alpha']}")
-                                    # Traitement spécial pour les objets RPG::AudioFile
+                                    # Traitement spÃ©cial pour les objets RPG::AudioFile
                                     elif isinstance(param, dict) and all(k in param for k in ['name', 'volume', 'pitch']):
                                         print(f"DEBUG: Found AudioFile object: {param}")  # Debug
                                         yaml_lines.append(f"        - !ruby/object:RPG::AudioFile")
                                         yaml_lines.append(f"          name: {param['name']}")
                                         yaml_lines.append(f"          volume: {param['volume']}")
                                         yaml_lines.append(f"          pitch: {param['pitch']}")
-                                    # Traitement spécial pour les listes
+                                    # Traitement spÃ©cial pour les listes
                                     elif isinstance(param, list):
                                         yaml_lines.append(f"        - ")
                                         for i, item in enumerate(param):
@@ -470,7 +470,7 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                                                 formatted_item = format_yaml_string(item) if isinstance(item, str) else item
                                                 yaml_lines.append(f"          - {formatted_item}")
                                     elif isinstance(param, str):
-                                        # CORRECTION: Formatage spécial pour les codes 402 (toujours avec apostrophes)
+                                        # CORRECTION: Formatage spÃ©cial pour les codes 402 (toujours avec apostrophes)
                                         formatted_param = format_yaml_string(param)
                                         yaml_lines.append(f"        - {formatted_param}")
                                     else:

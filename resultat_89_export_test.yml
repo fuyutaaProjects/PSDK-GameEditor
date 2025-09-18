@@ -386,7 +386,7 @@ events:
       direction_fix: false
       graphic: !ruby/object:RPG::Event::Page::Graphic
         character_hue: 0
-        character_name: albedo_walk
+        character_name: "!debug_piaaa"
         pattern: 1
         opacity: 255
         tile_id: 0
@@ -1068,7 +1068,7 @@ events:
       direction_fix: false
       graphic: !ruby/object:RPG::Event::Page::Graphic
         character_hue: 0
-        character_name: ''
+        character_name: 
         pattern: 0
         opacity: 255
         tile_id: 0
