@@ -381,6 +381,13 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                                         yaml_lines.append(f"          green: {param['green']}")
                                         yaml_lines.append(f"          blue: {param['blue']}")
                                         yaml_lines.append(f"          alpha: {param['alpha']}")
+                                    # Traitement spécial pour les objets RPG::AudioFile
+                                    elif isinstance(param, dict) and all(k in param for k in ['name', 'volume', 'pitch']):
+                                        print(f"DEBUG: Found AudioFile object: {param}")  # Debug
+                                        yaml_lines.append(f"        - !ruby/object:RPG::AudioFile")
+                                        yaml_lines.append(f"          name: {param['name']}")
+                                        yaml_lines.append(f"          volume: {param['volume']}")
+                                        yaml_lines.append(f"          pitch: {param['pitch']}")
                                     elif isinstance(param, str):
                                         yaml_lines.append(f"        - {param}")
                                     else:

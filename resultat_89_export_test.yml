@@ -609,6 +609,9 @@ events:
             - 0
             - 8
             - 0
+          - &2 !ruby/object:RPG::MoveCommand
+            code: 1
+            parameters: []
           - !ruby/object:RPG::MoveCommand
             code: 0
             parameters: []
@@ -617,6 +620,11 @@ events:
       - !ruby/object:RPG::EventCommand
         parameters:
         - *1
+        indent: 0
+        code: 509
+      - !ruby/object:RPG::EventCommand
+        parameters:
+        - {'code': 1, 'parameters': []}
         indent: 0
         code: 509
       - !ruby/object:RPG::EventCommand
@@ -698,7 +706,7 @@ events:
           repeat: false
           skippable: false
           list:
-          - &2 !ruby/object:RPG::MoveCommand
+          - &3 !ruby/object:RPG::MoveCommand
             code: 45
             parameters:
             - emotion(:nocomment, 0, oy_offset: 10)
@@ -709,7 +717,7 @@ events:
         code: 209
       - !ruby/object:RPG::EventCommand
         parameters:
-        - *2
+        - *3
         indent: 0
         code: 509
       - !ruby/object:RPG::EventCommand
@@ -833,7 +841,10 @@ events:
         code: 116
       - !ruby/object:RPG::EventCommand
         parameters:
-        - {'volume': 100, 'name': 'pkmrb-battle1', 'pitch': 100}
+        - !ruby/object:RPG::AudioFile
+          name: pkmrb-battle1
+          volume: 100
+          pitch: 100
         indent: 0
         code: 132
       - !ruby/object:RPG::EventCommand
@@ -881,7 +892,10 @@ events:
         code: 231
       - !ruby/object:RPG::EventCommand
         parameters:
-        - {'volume': 100, 'name': 'battle1', 'pitch': 100}
+        - !ruby/object:RPG::AudioFile
+          name: battle1
+          volume: 100
+          pitch: 100
         indent: 0
         code: 241
       - !ruby/object:RPG::EventCommand
@@ -917,7 +931,10 @@ events:
         code: 201
       - !ruby/object:RPG::EventCommand
         parameters:
-        - {'volume': 80, 'name': '002-wind02', 'pitch': 100}
+        - !ruby/object:RPG::AudioFile
+          name: 002-wind02
+          volume: 80
+          pitch: 100
         indent: 0
         code: 245
       - !ruby/object:RPG::EventCommand
@@ -927,7 +944,10 @@ events:
         code: 246
       - !ruby/object:RPG::EventCommand
         parameters:
-        - {'volume': 80, 'name': '020-teleport03', 'pitch': 100}
+        - !ruby/object:RPG::AudioFile
+          name: 020-teleport03
+          volume: 80
+          pitch: 100
         indent: 0
         code: 250
       - !ruby/object:RPG::EventCommand
