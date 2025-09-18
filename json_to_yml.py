@@ -240,10 +240,17 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                     yaml_lines.append(f"    {line}") 
 
         yaml_lines.append(f"    id: {event_data.get('id', 0)}")
-        # CORRECTION: Application du formatage au champ name
+        # CORRECTION: Gestion du champ name avec support des données binaires
         event_name = event_data.get('name', '')
-        formatted_name = format_yaml_string(event_name)
-        yaml_lines.append(f"    name: {formatted_name}")
+        if isinstance(event_name, dict) and '__binary_content__' in event_name:
+            # Cas des données binaires encodées
+            base64_content = event_name['__binary_content__']
+            yaml_lines.append(f"    name: !binary |-")
+            yaml_lines.append(f"      {base64_content}")
+        else:
+            # Cas normal avec formatage de chaîne
+            formatted_name = format_yaml_string(event_name)
+            yaml_lines.append(f"    name: {formatted_name}")
         yaml_lines.append(f"    x: {event_data.get('x', 0)}")
         yaml_lines.append(f"    y: {event_data.get('y', 0)}")
 
@@ -407,9 +414,13 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                         
                         # Maintenir l'ordre des propriétés : parameters, indent, code
                         if 'parameters' in command_to_dump:
-                            yaml_lines.append(f"        parameters:")
-                            if isinstance(command_to_dump['parameters'], list):
-                                for param in command_to_dump['parameters']:
+                            params_list = command_to_dump['parameters']
+                            # Vérifier si la liste des paramètres est vide ou None
+                            if not params_list or (isinstance(params_list, list) and len(params_list) == 0):
+                                yaml_lines.append(f"        parameters: []")
+                            elif isinstance(params_list, list):
+                                yaml_lines.append(f"        parameters:")
+                                for param in params_list:
                                     # Traitement spécial pour les objets Color
                                     if isinstance(param, dict) and all(k in param for k in ['red', 'green', 'blue', 'alpha']):
                                         print(f"DEBUG: Found Color object: {param}")  # Debug
@@ -425,14 +436,31 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                                         yaml_lines.append(f"          name: {param['name']}")
                                         yaml_lines.append(f"          volume: {param['volume']}")
                                         yaml_lines.append(f"          pitch: {param['pitch']}")
+                                    # Traitement spécial pour les listes (notamment pour le code 102)
+                                    elif isinstance(param, list):
+                                        yaml_lines.append(f"        - ")
+                                        for i, item in enumerate(param):
+                                            if i == 0:
+                                                yaml_lines[-1] += f"- {format_yaml_string(item) if isinstance(item, str) else item}"
+                                            else:
+                                                yaml_lines.append(f"          - {format_yaml_string(item) if isinstance(item, str) else item}")
                                     elif isinstance(param, str):
-                                        # CORRECTION: Utilisation de la fonction format_yaml_string
-                                        formatted_param = format_yaml_string(param)
-                                        yaml_lines.append(f"        - {formatted_param}")
+                                        # CORRECTION: Formatage spécial pour les codes 402 (toujours avec apostrophes)
+                                        if command_to_dump.get('code') == 402:
+                                            # Échapper les apostrophes s'il y en a
+                                            escaped_param = param.replace("'", "''")
+                                            yaml_lines.append(f"        - '{escaped_param}'")
+                                        else:
+                                            # Utilisation normale de la fonction format_yaml_string
+                                            formatted_param = format_yaml_string(param)
+                                            yaml_lines.append(f"        - {formatted_param}")
                                     else:
                                         yaml_lines.append(f"        - {param}")
                             else:
-                                yaml_lines.append(f"        - {command_to_dump['parameters']}")
+                                yaml_lines.append(f"        parameters: {command_to_dump['parameters']}")
+                        else:
+                            # Si 'parameters' n'existe pas du tout dans la commande
+                            yaml_lines.append(f"        parameters: []")
                         
                         yaml_lines.append(f"        indent: {command_to_dump.get('indent', 0)}")
                         yaml_lines.append(f"        code: {command_to_dump.get('code')}")

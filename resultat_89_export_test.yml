@@ -323,7 +323,8 @@ data: !ruby/object:Table
 events:
   1: !ruby/object:RPG::Event
     id: 1
-    name: {'__binary_content__': 'wqcga2FlcnU='}
+    name: !binary |-
+      wqcga2FlcnU=
     x: 1
     y: 2
     pages:
@@ -363,7 +364,7 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 0
         code: 0
   2: !ruby/object:RPG::Event
@@ -408,7 +409,7 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 0
         code: 0
   3: !ruby/object:RPG::Event
@@ -453,7 +454,7 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 0
         code: 0
   4: !ruby/object:RPG::Event
@@ -498,7 +499,7 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 0
         code: 0
   5: !ruby/object:RPG::Event
@@ -583,7 +584,7 @@ events:
         indent: 0
         code: 101
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 0
         code: 0
   6: !ruby/object:RPG::Event
@@ -660,7 +661,7 @@ events:
         indent: 0
         code: 509
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 0
         code: 0
   7: !ruby/object:RPG::Event
@@ -788,11 +789,11 @@ events:
         indent: 0
         code: 111
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 1
         code: 0
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 0
         code: 412
       - !ruby/object:RPG::EventCommand
@@ -807,11 +808,11 @@ events:
         indent: 1
         code: 101
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 1
         code: 0
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 0
         code: 411
       - !ruby/object:RPG::EventCommand
@@ -820,11 +821,11 @@ events:
         indent: 1
         code: 101
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 1
         code: 0
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 0
         code: 412
       - !ruby/object:RPG::EventCommand
@@ -834,14 +835,15 @@ events:
         code: 108
       - !ruby/object:RPG::EventCommand
         parameters:
-        - ['Yes', 'No']
+        - - Yes
+          - No
         - 2
         indent: 0
         code: 102
       - !ruby/object:RPG::EventCommand
         parameters:
         - 0
-        - Yes
+        - 'Yes'
         indent: 0
         code: 402
       - !ruby/object:RPG::EventCommand
@@ -850,25 +852,25 @@ events:
         indent: 1
         code: 101
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 1
         code: 0
       - !ruby/object:RPG::EventCommand
         parameters:
         - 1
-        - No
+        - 'No'
         indent: 0
         code: 402
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 1
         code: 0
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 0
         code: 404
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 0
         code: 116
       - !ruby/object:RPG::EventCommand
@@ -983,11 +985,11 @@ events:
         indent: 0
         code: 250
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 0
         code: 251
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 0
         code: 0
     - !ruby/object:RPG::Event::Page
@@ -1070,15 +1072,15 @@ events:
         indent: 1
         code: 121
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 1
         code: 0
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 0
         code: 412
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 0
         code: 0
   8: !ruby/object:RPG::Event
@@ -1123,7 +1125,7 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 0
         code: 0
   9: !ruby/object:RPG::Event
@@ -1168,7 +1170,7 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 0
         code: 0
   10: !ruby/object:RPG::Event
@@ -1213,7 +1215,7 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 0
         code: 0
   11: !ruby/object:RPG::Event
@@ -1258,7 +1260,7 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 0
         code: 0
   12: !ruby/object:RPG::Event
@@ -1303,6 +1305,6 @@ events:
           parameters: []
       list:
       - !ruby/object:RPG::EventCommand
-        parameters:
+        parameters: []
         indent: 0
         code: 0
