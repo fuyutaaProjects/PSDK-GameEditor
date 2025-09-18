@@ -835,8 +835,8 @@ events:
         code: 108
       - !ruby/object:RPG::EventCommand
         parameters:
-        - - Yes
-          - No
+        - - 'Yes'
+          - 'No'
         - 2
         indent: 0
         code: 102

@@ -436,14 +436,26 @@ def reconstruct_rpg_map_yaml(json_data, output_file_path):
                                         yaml_lines.append(f"          name: {param['name']}")
                                         yaml_lines.append(f"          volume: {param['volume']}")
                                         yaml_lines.append(f"          pitch: {param['pitch']}")
-                                    # Traitement spécial pour les listes (notamment pour le code 102)
+                                    # Traitement spécial pour les listes
                                     elif isinstance(param, list):
                                         yaml_lines.append(f"        - ")
                                         for i, item in enumerate(param):
                                             if i == 0:
-                                                yaml_lines[-1] += f"- {format_yaml_string(item) if isinstance(item, str) else item}"
+                                                # Traitement spécial pour le code 102 (Show Choices) - forcer les guillemets simples
+                                                if command_to_dump.get('code') == 102 and isinstance(item, str):
+                                                    escaped_item = item.replace("'", "''")
+                                                    formatted_item = f"'{escaped_item}'"
+                                                else:
+                                                    formatted_item = format_yaml_string(item) if isinstance(item, str) else item
+                                                yaml_lines[-1] += f"- {formatted_item}"
                                             else:
-                                                yaml_lines.append(f"          - {format_yaml_string(item) if isinstance(item, str) else item}")
+                                                # Traitement spécial pour le code 102 (Show Choices) - forcer les guillemets simples
+                                                if command_to_dump.get('code') == 102 and isinstance(item, str):
+                                                    escaped_item = item.replace("'", "''")
+                                                    formatted_item = f"'{escaped_item}'"
+                                                else:
+                                                    formatted_item = format_yaml_string(item) if isinstance(item, str) else item
+                                                yaml_lines.append(f"          - {formatted_item}")
                                     elif isinstance(param, str):
                                         # CORRECTION: Formatage spécial pour les codes 402 (toujours avec apostrophes)
                                         if command_to_dump.get('code') == 402:
